@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yellow Hauz POS - Sales Report</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            DEFAULT: '#FBBF24', // Vintage Mustard Yellow
+                            light: '#FEF9C3',   // Pale Yellow
+                            dark: '#D97706',
+                            black: '#171717',   // Off-black for vintage feel
+                        },
+                        vintage: {
+                            paper: '#F5F4F0',   // Slight off-white paper look
+                            border: '#E5E5E5'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #E5E5E5; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #A3A3A3; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="bg-[#EAE8E3] h-screen w-screen p-4 md:p-6 flex items-center justify-center font-sans text-brand-black overflow-hidden">
+
+    <!-- Main App Container -->
+    <div class="bg-vintage-paper w-full max-w-[1440px] h-full rounded-[32px] shadow-2xl flex overflow-hidden border border-gray-300 relative">
+        
+        <!-- ================= LEFT SIDEBAR ================= -->
+        <aside class="w-[240px] bg-white border-r border-vintage-border flex flex-col justify-between py-6 px-4 shrink-0 z-20 relative">
+            <div>
+                <!-- Logo -->
+                <div class="flex flex-col items-center justify-center mb-10 mt-2 text-center">
+                    <span class="font-serif italic text-sm text-gray-500 mb-1">Coffee at</span>
+                    <h1 class="font-serif font-bold text-2xl leading-none text-brand-black tracking-tight uppercase">Yellow Hauz</h1>
+                    <div class="flex items-center gap-2 mt-2">
+                        <div class="h-px w-4 bg-brand"></div>
+                        <span class="text-[10px] tracking-[0.2em] text-gray-400 uppercase font-semibold">Since 2007</span>
+                        <div class="h-px w-4 bg-brand"></div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="space-y-1.5">
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-mug-hot w-5 text-center"></i> Menu
+                    </a>
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-utensils w-5 text-center"></i> Table Services
+                    </a>
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-receipt w-5 text-center"></i> Tickets
+                    </a>
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-regular fa-calendar-check w-5 text-center"></i> Reservation
+                    </a>
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-clipboard-list w-5 text-center"></i> Manage Food Items
+                    </a>
+                    
+                    <!-- NEW ACTIVE NAV ITEM: Sales Report -->
+                    <a href="#" class="flex items-center gap-4 bg-brand-black text-brand px-4 py-3.5 rounded-2xl font-semibold shadow-md transition-all">
+                        <i class="fa-solid fa-chart-line w-5 text-center"></i> Sales Report
+                    </a>
+
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-gear w-5 text-center"></i> Settings
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Bottom Users / Logout -->
+            <div class="space-y-4">
+                <hr class="border-gray-200">
+                <a href="#" class="flex items-center gap-3 text-gray-500 hover:text-brand-black px-4 py-2 font-medium transition-all">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- ================= MAIN CONTENT ================= -->
+        <main class="flex-1 flex flex-col relative bg-vintage-paper overflow-hidden">
+            
+            <!-- Top Header -->
+            <header class="h-[88px] flex items-center justify-between px-8 shrink-0 border-b border-gray-200/80 bg-white/60 backdrop-blur-md z-20">
+                <div class="flex items-center gap-4">
+                    <h2 class="text-2xl font-serif font-bold text-brand-black tracking-wide">SALES OVERVIEW</h2>
+                </div>
+                
+                <!-- Date Filter & Export -->
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+                        <button class="px-4 py-1.5 rounded-md bg-brand-light text-brand-dark font-bold text-sm border border-brand/20 shadow-sm">Today</button>
+                        <button class="px-4 py-1.5 rounded-md text-gray-500 hover:text-brand-black font-semibold text-sm transition-colors">This Week</button>
+                        <button class="px-4 py-1.5 rounded-md text-gray-500 hover:text-brand-black font-semibold text-sm transition-colors">This Month</button>
+                    </div>
+                    
+                    <button class="bg-brand-black text-brand px-5 py-2.5 rounded-lg font-bold text-sm shadow-[2px_2px_0px_0px_rgba(251,191,36,1)] hover:bg-gray-800 transition-all active:translate-y-0.5 active:translate-x-0.5 active:shadow-none uppercase tracking-wide border border-transparent flex items-center gap-2">
+                        <i class="fa-solid fa-download"></i> Export
+                    </button>
+                </div>
+            </header>
+
+            <!-- Workspace: Dashboard Content -->
+            <div class="flex-1 overflow-y-auto p-8 hide-scrollbar">
+                
+                <!-- KPI Summary Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    
+                    <!-- KPI 1: Total Revenue -->
+                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden group hover:border-brand-black transition-colors">
+                        <div class="absolute right-0 top-0 w-24 h-24 bg-brand-light rounded-bl-full -z-0 opacity-50 group-hover:scale-110 transition-transform"></div>
+                        <div class="relative z-10 flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Total Revenue</p>
+                                <h3 class="font-serif text-4xl font-bold text-brand-black">3,450.25</h3>
+                                <p class="text-xs font-semibold mt-2 text-green-600 flex items-center gap-1">
+                                    <i class="fa-solid fa-arrow-trend-up"></i> +12.5% vs yesterday
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-brand-black text-brand flex items-center justify-center text-xl shadow-inner">
+                                <i class="fa-solid fa-coins"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI 2: Total Orders -->
+                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden group hover:border-brand-black transition-colors">
+                        <div class="absolute right-0 top-0 w-24 h-24 bg-gray-100 rounded-bl-full -z-0 opacity-50 group-hover:scale-110 transition-transform"></div>
+                        <div class="relative z-10 flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Total Orders</p>
+                                <h3 class="font-serif text-4xl font-bold text-brand-black">142</h3>
+                                <p class="text-xs font-semibold mt-2 text-green-600 flex items-center gap-1">
+                                    <i class="fa-solid fa-arrow-trend-up"></i> +5.2% vs yesterday
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-xl shadow-inner border border-gray-200">
+                                <i class="fa-solid fa-receipt"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KPI 3: Avg Order Value -->
+                    <div class="bg-white p-6 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden group hover:border-brand-black transition-colors">
+                        <div class="absolute right-0 top-0 w-24 h-24 bg-gray-100 rounded-bl-full -z-0 opacity-50 group-hover:scale-110 transition-transform"></div>
+                        <div class="relative z-10 flex justify-between items-start">
+                            <div>
+                                <p class="text-sm text-gray-500 font-bold uppercase tracking-wider mb-1">Avg Order Value</p>
+                                <h3 class="font-serif text-4xl font-bold text-brand-black">24.29</h3>
+                                <p class="text-xs font-semibold mt-2 text-red-500 flex items-center gap-1">
+                                    <i class="fa-solid fa-arrow-trend-down"></i> -1.1% vs yesterday
+                                </p>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-xl shadow-inner border border-gray-200">
+                                <i class="fa-solid fa-chart-pie"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    
+                    <!-- LEFT COL: Top Selling Products -->
+                    <div class="lg:col-span-1 bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col">
+                        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                            <h3 class="font-serif text-xl font-bold text-brand-black">Top Selling Products</h3>
+                            <button class="text-gray-400 hover:text-brand-black transition-colors"><i class="fa-solid fa-ellipsis"></i></button>
+                        </div>
+                        <div class="p-6 flex-1 space-y-6">
+                            
+                            <!-- Product 1 -->
+                            <div>
+                                <div class="flex justify-between items-end mb-2">
+                                    <div>
+                                        <h4 class="font-bold text-sm text-brand-black">Spanish Latte</h4>
+                                        <p class="text-xs text-gray-500 font-medium">120 units sold</p>
+                                    </div>
+                                    <span class="font-serif font-bold text-brand-black">2,400.00</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden border border-gray-200">
+                                    <div class="h-full bg-brand-black rounded-full w-[85%]"></div>
+                                </div>
+                            </div>
+
+                            <!-- Product 2 -->
+                            <div>
+                                <div class="flex justify-between items-end mb-2">
+                                    <div>
+                                        <h4 class="font-bold text-sm text-brand-black">Cappuccino</h4>
+                                        <p class="text-xs text-gray-500 font-medium">85 units sold</p>
+                                    </div>
+                                    <span class="font-serif font-bold text-brand-black">1,445.00</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden border border-gray-200">
+                                    <div class="h-full bg-brand rounded-full w-[60%]"></div>
+                                </div>
+                            </div>
+
+                            <!-- Product 3 -->
+                            <div>
+                                <div class="flex justify-between items-end mb-2">
+                                    <div>
+                                        <h4 class="font-bold text-sm text-brand-black">Espresso</h4>
+                                        <p class="text-xs text-gray-500 font-medium">60 units sold</p>
+                                    </div>
+                                    <span class="font-serif font-bold text-brand-black">600.00</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden border border-gray-200">
+                                    <div class="h-full bg-brand-dark rounded-full w-[40%]"></div>
+                                </div>
+                            </div>
+
+                            <!-- Product 4 -->
+                            <div>
+                                <div class="flex justify-between items-end mb-2">
+                                    <div>
+                                        <h4 class="font-bold text-sm text-brand-black">Flat White</h4>
+                                        <p class="text-xs text-gray-500 font-medium">45 units sold</p>
+                                    </div>
+                                    <span class="font-serif font-bold text-brand-black">765.00</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden border border-gray-200">
+                                    <div class="h-full bg-gray-400 rounded-full w-[30%]"></div>
+                                </div>
+                            </div>
+
+                             <!-- Product 5 -->
+                             <div>
+                                <div class="flex justify-between items-end mb-2">
+                                    <div>
+                                        <h4 class="font-bold text-sm text-brand-black">Classic Croissant</h4>
+                                        <p class="text-xs text-gray-500 font-medium">38 units sold</p>
+                                    </div>
+                                    <span class="font-serif font-bold text-brand-black">342.00</span>
+                                </div>
+                                <div class="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden border border-gray-200">
+                                    <div class="h-full bg-gray-300 rounded-full w-[25%]"></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COL: Staff Sales Ledger -->
+                    <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden">
+                        <div class="p-6 border-b border-brand-black bg-vintage-paper flex justify-between items-center">
+                            <div>
+                                <h3 class="font-serif text-xl font-bold text-brand-black">Staff Performance Ledger</h3>
+                                <p class="text-xs text-gray-500 mt-1 font-medium">Breakdown of orders processed and revenue generated by employee.</p>
+                            </div>
+                            <button class="bg-white border border-gray-300 text-gray-600 px-3 py-1.5 rounded text-sm font-bold shadow-sm hover:text-brand-black transition-colors">View All</button>
+                        </div>
+                        
+                        <!-- Table -->
+                        <div class="w-full overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50 border-b-2 border-gray-200">
+                                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Employee</th>
+                                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Role</th>
+                                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Orders Handled</th>
+                                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Total Revenue</th>
+                                        <th class="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    
+                                    <!-- Row 1 -->
+                                    <tr class="hover:bg-brand-light/20 transition-colors">
+                                        <td class="py-4 px-6">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-full bg-brand text-brand-black flex items-center justify-center text-xs font-bold border border-brand-black">FM</div>
+                                                <span class="font-bold text-sm text-brand-black">Floyd Miles</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-6">
+                                            <span class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">Senior Barista</span>
+                                        </td>
+                                        <td class="py-4 px-6 text-center font-bold text-brand-black">65</td>
+                                        <td class="py-4 px-6 text-right font-serif font-bold text-brand-black">1,550.00</td>
+                                        <td class="py-4 px-6 text-center">
+                                            <span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full border border-green-200 uppercase tracking-wider">Excellent</span>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Row 2 -->
+                                    <tr class="hover:bg-brand-light/20 transition-colors">
+                                        <td class="py-4 px-6">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold border border-gray-300">AM</div>
+                                                <span class="font-bold text-sm text-brand-black">Arlene McCoy</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-6">
+                                            <span class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">Cashier</span>
+                                        </td>
+                                        <td class="py-4 px-6 text-center font-bold text-brand-black">45</td>
+                                        <td class="py-4 px-6 text-right font-serif font-bold text-brand-black">1,020.25</td>
+                                        <td class="py-4 px-6 text-center">
+                                            <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-full border border-blue-200 uppercase tracking-wider">On Target</span>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Row 3 -->
+                                    <tr class="hover:bg-brand-light/20 transition-colors">
+                                        <td class="py-4 px-6">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-full bg-brand-black text-brand flex items-center justify-center text-xs font-bold border border-transparent">JJ</div>
+                                                <span class="font-bold text-sm text-brand-black">Jacob Jones</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-6">
+                                            <span class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">Barista</span>
+                                        </td>
+                                        <td class="py-4 px-6 text-center font-bold text-brand-black">32</td>
+                                        <td class="py-4 px-6 text-right font-serif font-bold text-brand-black">880.00</td>
+                                        <td class="py-4 px-6 text-center">
+                                            <span class="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-full border border-blue-200 uppercase tracking-wider">On Target</span>
+                                        </td>
+                                    </tr>
+
+                                    <!-- Row 4 -->
+                                    <tr class="hover:bg-brand-light/20 transition-colors">
+                                        <td class="py-4 px-6">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold border border-gray-300">BC</div>
+                                                <span class="font-bold text-sm text-brand-black">Bessie Cooper</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-4 px-6">
+                                            <span class="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">Trainee</span>
+                                        </td>
+                                        <td class="py-4 px-6 text-center font-bold text-brand-black">15</td>
+                                        <td class="py-4 px-6 text-right font-serif font-bold text-brand-black">215.00</td>
+                                        <td class="py-4 px-6 text-center">
+                                            <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full border border-gray-200 uppercase tracking-wider">Average</span>
+                                        </td>
+                                    </tr>
+                                    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </main>
+    </div>
+</body>
+</html>
