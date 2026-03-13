@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yellow Hauz POS - Manage Food Items</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            DEFAULT: '#FBBF24', // Vintage Mustard Yellow
+                            light: '#FEF9C3',   // Pale Yellow
+                            dark: '#D97706',
+                            black: '#171717',   // Off-black for vintage feel
+                        },
+                        vintage: {
+                            paper: '#F5F4F0',   // Slight off-white paper look
+                            border: '#E5E5E5'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #E5E5E5; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #A3A3A3; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Custom Checkbox */
+        .custom-checkbox { accent-color: #171717; cursor: pointer; }
+    </style>
+</head>
+<body class="bg-[#EAE8E3] h-screen w-screen p-4 md:p-6 flex items-center justify-center font-sans text-brand-black overflow-hidden">
+
+    <!-- Main App Container -->
+    <div class="bg-vintage-paper w-full max-w-[1440px] h-full rounded-[32px] shadow-2xl flex overflow-hidden border border-gray-300 relative">
+        
+        <!-- ================= LEFT SIDEBAR ================= -->
+        <aside class="w-[240px] bg-white border-r border-vintage-border flex flex-col justify-between py-6 px-4 shrink-0 z-20 relative">
+            <div>
+                <!-- Logo -->
+                <div class="flex flex-col items-center justify-center mb-10 mt-2 text-center">
+                    <span class="font-serif italic text-sm text-gray-500 mb-1">Coffee at</span>
+                    <h1 class="font-serif font-bold text-2xl leading-none text-brand-black tracking-tight uppercase">Yellow Hauz</h1>
+                    <div class="flex items-center gap-2 mt-2">
+                        <div class="h-px w-4 bg-brand"></div>
+                        <span class="text-[10px] tracking-[0.2em] text-gray-400 uppercase font-semibold">Since 2007</span>
+                        <div class="h-px w-4 bg-brand"></div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="space-y-1.5">
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-mug-hot w-5 text-center"></i> Menu
+                    </a>
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-utensils w-5 text-center"></i> Table Services
+                    </a>
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-receipt w-5 text-center"></i> Tickets
+                    </a>
+                   
+                    <!-- NEW ACTIVE NAV ITEM -->
+                    <a href="#" class="flex items-center gap-4 bg-brand-black text-brand px-4 py-3.5 rounded-2xl font-semibold shadow-md transition-all">
+                        <i class="fa-solid fa-clipboard-list w-5 text-center"></i> Manage Food Items
+                    </a>
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i> Accounting
+                    </a>
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-gear w-5 text-center"></i> Settings
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Bottom Users / Logout -->
+            <div class="space-y-4">
+                <hr class="border-gray-200">
+                <a href="#" class="flex items-center gap-3 text-gray-500 hover:text-brand-black px-4 py-2 font-medium transition-all">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- ================= MAIN CONTENT ================= -->
+        <main class="flex-1 flex flex-col relative bg-vintage-paper overflow-hidden">
+            
+            <!-- Top Header -->
+            <header class="h-[88px] flex items-center justify-between px-8 shrink-0 border-b border-gray-200/50 bg-white/50 backdrop-blur-sm">
+                <h2 class="text-2xl font-serif font-bold text-brand-black">Manage Dishes</h2>
+                
+                <div class="flex items-center gap-6 flex-1 justify-end max-w-2xl">
+                    <!-- Search Bar -->
+                    <div class="flex-1 relative max-w-md">
+                        <i class="fa-solid fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" placeholder="Search dishes..." class="w-full bg-white h-11 rounded-full pl-12 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-brand shadow-sm border border-gray-200">
+                    </div>
+                    
+                    <!-- Action Button -->
+                    <button class="bg-brand-black text-brand px-6 py-2.5 rounded-full font-bold text-sm shadow-[2px_2px_0px_0px_rgba(251,191,36,1)] hover:bg-gray-800 transition-all active:translate-y-0.5 active:translate-x-0.5 active:shadow-none uppercase tracking-wide border border-transparent">
+                        <i class="fa-solid fa-plus mr-2"></i> Add New Dish
+                    </button>
+                </div>
+            </header>
+
+            <!-- Workspace: Categories + Grid -->
+            <div class="flex-1 flex overflow-hidden p-6 gap-6">
+                
+                <!-- ====== LEFT PANEL: CATEGORIES ====== -->
+                <div class="w-[280px] bg-white rounded-[24px] border border-gray-200 shadow-sm flex flex-col shrink-0 overflow-hidden relative">
+                    <div class="p-5 border-b border-gray-100">
+                        <h3 class="font-serif text-lg font-bold text-brand-black">Dishes Category</h3>
+                    </div>
+                    
+                    <!-- Category List -->
+                    <div class="flex-1 overflow-y-auto p-3 space-y-1.5 hide-scrollbar">
+                        
+                        <!-- List Item -->
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 border border-transparent transition-all group">
+                            <div class="flex items-center gap-3 text-sm font-medium text-gray-600 group-hover:text-brand-black">
+                                <i class="fa-solid fa-layer-group w-5 text-gray-400 group-hover:text-brand-black"></i>
+                                All Dishes
+                            </div>
+                            <span class="bg-gray-100 text-gray-500 text-[10px] font-bold px-2 py-0.5 rounded-full">84</span>
+                        </button>
+
+                        <!-- ACTIVE List Item -->
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl bg-brand-light border-2 border-brand shadow-sm transition-all group">
+                            <div class="flex items-center gap-3 text-sm font-bold text-brand-black font-serif">
+                                <i class="fa-solid fa-mug-saucer w-5 text-brand-dark"></i>
+                                Coffee
+                            </div>
+                            <span class="bg-brand-black text-brand text-[10px] font-bold px-2 py-0.5 rounded-full">18</span>
+                        </button>
+
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 border border-transparent transition-all group">
+                            <div class="flex items-center gap-3 text-sm font-medium text-gray-600 group-hover:text-brand-black">
+                                <i class="fa-solid fa-glass-water w-5 text-gray-400 group-hover:text-brand-black"></i>
+                                On The Rocks
+                            </div>
+                            <span class="bg-gray-100 text-gray-500 text-[10px] font-bold px-2 py-0.5 rounded-full">12</span>
+                        </button>
+
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 border border-transparent transition-all group">
+                            <div class="flex items-center gap-3 text-sm font-medium text-gray-600 group-hover:text-brand-black">
+                                <i class="fa-solid fa-blender w-5 text-gray-400 group-hover:text-brand-black"></i>
+                                Blended
+                            </div>
+                            <span class="bg-gray-100 text-gray-500 text-[10px] font-bold px-2 py-0.5 rounded-full">9</span>
+                        </button>
+
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 border border-transparent transition-all group">
+                            <div class="flex items-center gap-3 text-sm font-medium text-gray-600 group-hover:text-brand-black">
+                                <i class="fa-solid fa-fire w-5 text-gray-400 group-hover:text-brand-black"></i>
+                                Hot Drinks
+                            </div>
+                            <span class="bg-gray-100 text-gray-500 text-[10px] font-bold px-2 py-0.5 rounded-full">7</span>
+                        </button>
+
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 border border-transparent transition-all group">
+                            <div class="flex items-center gap-3 text-sm font-medium text-gray-600 group-hover:text-brand-black">
+                                <i class="fa-solid fa-leaf w-5 text-gray-400 group-hover:text-brand-black"></i>
+                                Milk Tea
+                            </div>
+                            <span class="bg-gray-100 text-gray-500 text-[10px] font-bold px-2 py-0.5 rounded-full">14</span>
+                        </button>
+
+                        <button class="w-full flex items-center justify-between p-3 rounded-xl hover:bg-gray-50 border border-transparent transition-all group">
+                            <div class="flex items-center gap-3 text-sm font-medium text-gray-600 group-hover:text-brand-black">
+                                <i class="fa-solid fa-cookie w-5 text-gray-400 group-hover:text-brand-black"></i>
+                                Food
+                            </div>
+                            <span class="bg-gray-100 text-gray-500 text-[10px] font-bold px-2 py-0.5 rounded-full">24</span>
+                        </button>
+
+                    </div>
+                    
+                    <!-- Add Category Button -->
+                    <div class="p-4 border-t border-gray-100 bg-white">
+                        <button class="w-full py-3 rounded-xl text-brand-black border border-brand-black bg-white hover:bg-brand-black hover:text-brand transition-colors font-bold text-sm uppercase tracking-wide">
+                            <i class="fa-solid fa-plus mr-1"></i> Add Category
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ====== RIGHT PANEL: ITEMS GRID ====== -->
+                <div class="flex-1 flex flex-col overflow-hidden">
+                    
+                    <!-- Grid Header Tools -->
+                    <div class="flex items-center justify-between mb-4 px-2">
+                        <h3 class="font-serif text-2xl font-bold text-brand-black">Coffee <span class="text-gray-400 text-lg font-sans ml-1">(18)</span></h3>
+                        
+                        <div class="flex items-center gap-3">
+                            <!-- View Toggles -->
+                            <div class="flex bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
+                                <button class="w-8 h-8 rounded text-brand border border-brand bg-brand-light flex items-center justify-center"><i class="fa-solid fa-border-all"></i></button>
+                                <button class="w-8 h-8 rounded text-gray-400 hover:text-brand-black flex items-center justify-center"><i class="fa-solid fa-list-ul"></i></button>
+                            </div>
+                            <!-- Filter -->
+                            <button class="bg-white border border-gray-200 shadow-sm px-4 py-2 rounded-lg text-sm font-bold text-gray-600 hover:text-brand-black transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-sliders"></i> Filter
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable Grid Area -->
+                    <div class="flex-1 overflow-y-auto pb-10 px-2 hide-scrollbar">
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            
+                            <!-- Add New Dish Box -->
+                            <div class="bg-white/50 border-2 border-dashed border-gray-300 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[220px] cursor-pointer hover:border-brand-black hover:bg-brand-light transition-colors group">
+                                <div class="w-10 h-10 bg-gray-200 group-hover:bg-brand-black text-gray-500 group-hover:text-brand rounded-full flex items-center justify-center mb-3 transition-colors">
+                                    <i class="fa-solid fa-plus text-lg"></i>
+                                </div>
+                                <span class="font-serif font-bold text-gray-500 group-hover:text-brand-black text-center">Add New Dish to<br>Coffee</span>
+                            </div>
+
+                            <!-- Item Card 1 -->
+                            <div class="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-between min-h-[220px] shadow-sm hover:shadow-md transition-shadow relative">
+                                <!-- Top tools -->
+                                <div class="w-full flex justify-between items-start mb-2">
+                                    <input type="checkbox" class="custom-checkbox w-4 h-4 rounded border-gray-300">
+                                    <button class="text-gray-400 hover:text-brand-black"><i class="fa-solid fa-ellipsis"></i></button>
+                                </div>
+                                <!-- Image -->
+                                <div class="w-24 h-24 rounded-full border border-gray-100 overflow-hidden shadow-sm mb-4">
+                                    <img src="https://images.unsplash.com/photo-1510591509098-f4fdc6d0fd24?w=200&q=80" alt="Espresso" class="w-full h-full object-cover">
+                                </div>
+                                <!-- Info -->
+                                <div class="w-full flex flex-col">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Coffee</span>
+                                    <h4 class="font-serif font-bold text-brand-black text-sm leading-tight line-clamp-1">Espresso</h4>
+                                    <span class="font-bold text-brand-black mt-1">100.00</span>
+                                </div>
+                            </div>
+
+                            <!-- Item Card 2 -->
+                            <div class="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-between min-h-[220px] shadow-sm hover:shadow-md transition-shadow relative">
+                                <div class="w-full flex justify-between items-start mb-2">
+                                    <input type="checkbox" class="custom-checkbox w-4 h-4 rounded border-gray-300">
+                                    <button class="text-gray-400 hover:text-brand-black"><i class="fa-solid fa-ellipsis"></i></button>
+                                </div>
+                                <div class="w-24 h-24 rounded-full border border-gray-100 overflow-hidden shadow-sm mb-4">
+                                    <img src="https://images.unsplash.com/photo-1534778101976-62847782c213?w=200&q=80" alt="Cappuccino" class="w-full h-full object-cover">
+                                </div>
+                                <div class="w-full flex flex-col">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Coffee</span>
+                                    <h4 class="font-serif font-bold text-brand-black text-sm leading-tight line-clamp-1">Cappuccino</h4>
+                                    <span class="font-bold text-brand-black mt-1">170.00</span>
+                                </div>
+                            </div>
+
+                            <!-- Item Card 3 -->
+                            <div class="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-between min-h-[220px] shadow-sm hover:shadow-md transition-shadow relative">
+                                <div class="w-full flex justify-between items-start mb-2">
+                                    <input type="checkbox" class="custom-checkbox w-4 h-4 rounded border-gray-300">
+                                    <button class="text-gray-400 hover:text-brand-black"><i class="fa-solid fa-ellipsis"></i></button>
+                                </div>
+                                <div class="w-24 h-24 rounded-full border border-gray-100 overflow-hidden shadow-sm mb-4">
+                                    <img src="https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=200&q=80" alt="Spanish Latte" class="w-full h-full object-cover">
+                                </div>
+                                <div class="w-full flex flex-col">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Coffee</span>
+                                    <h4 class="font-serif font-bold text-brand-black text-sm leading-tight line-clamp-1">Spanish Latte</h4>
+                                    <span class="font-bold text-brand-black mt-1">200.00</span>
+                                </div>
+                            </div>
+
+                            <!-- Item Card 4 -->
+                            <div class="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-between min-h-[220px] shadow-sm hover:shadow-md transition-shadow relative">
+                                <div class="w-full flex justify-between items-start mb-2">
+                                    <input type="checkbox" class="custom-checkbox w-4 h-4 rounded border-gray-300">
+                                    <button class="text-gray-400 hover:text-brand-black"><i class="fa-solid fa-ellipsis"></i></button>
+                                </div>
+                                <div class="w-24 h-24 rounded-full border border-gray-100 overflow-hidden shadow-sm mb-4">
+                                    <img src="https://images.unsplash.com/photo-1580828369066-ea90b9f9fb51?w=200&q=80" alt="Flat White" class="w-full h-full object-cover">
+                                </div>
+                                <div class="w-full flex flex-col">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Coffee</span>
+                                    <h4 class="font-serif font-bold text-brand-black text-sm leading-tight line-clamp-1">Flat White</h4>
+                                    <span class="font-bold text-brand-black mt-1">170.00</span>
+                                </div>
+                            </div>
+
+                            <!-- Item Card 5 -->
+                            <div class="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-between min-h-[220px] shadow-sm hover:shadow-md transition-shadow relative">
+                                <div class="w-full flex justify-between items-start mb-2">
+                                    <input type="checkbox" class="custom-checkbox w-4 h-4 rounded border-gray-300">
+                                    <button class="text-gray-400 hover:text-brand-black"><i class="fa-solid fa-ellipsis"></i></button>
+                                </div>
+                                <div class="w-24 h-24 rounded-full border border-gray-100 overflow-hidden shadow-sm mb-4">
+                                    <img src="https://images.unsplash.com/photo-1485808191679-5f86510681a2?w=200&q=80" alt="Macchiato" class="w-full h-full object-cover">
+                                </div>
+                                <div class="w-full flex flex-col">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Coffee</span>
+                                    <h4 class="font-serif font-bold text-brand-black text-sm leading-tight line-clamp-1">Macchiato</h4>
+                                    <span class="font-bold text-brand-black mt-1">110.00</span>
+                                </div>
+                            </div>
+
+                            <!-- Item Card 6 -->
+                            <div class="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-between min-h-[220px] shadow-sm hover:shadow-md transition-shadow relative">
+                                <div class="w-full flex justify-between items-start mb-2">
+                                    <input type="checkbox" class="custom-checkbox w-4 h-4 rounded border-gray-300">
+                                    <button class="text-gray-400 hover:text-brand-black"><i class="fa-solid fa-ellipsis"></i></button>
+                                </div>
+                                <div class="w-24 h-24 rounded-full border border-gray-100 overflow-hidden shadow-sm mb-4">
+                                    <img src="https://images.unsplash.com/photo-1554520735-0a145211ebdf?w=200&q=80" alt="Americano" class="w-full h-full object-cover">
+                                </div>
+                                <div class="w-full flex flex-col">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Coffee</span>
+                                    <h4 class="font-serif font-bold text-brand-black text-sm leading-tight line-clamp-1">Americano Hot</h4>
+                                    <span class="font-bold text-brand-black mt-1">140.00</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Item Card 7 -->
+                            <div class="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-between min-h-[220px] shadow-sm hover:shadow-md transition-shadow relative">
+                                <div class="w-full flex justify-between items-start mb-2">
+                                    <input type="checkbox" class="custom-checkbox w-4 h-4 rounded border-gray-300">
+                                    <button class="text-gray-400 hover:text-brand-black"><i class="fa-solid fa-ellipsis"></i></button>
+                                </div>
+                                <div class="w-24 h-24 rounded-full border border-gray-100 overflow-hidden shadow-sm mb-4">
+                                    <img src="https://images.unsplash.com/photo-1610889556528-9a770e32642f?w=200&q=80" alt="Latte" class="w-full h-full object-cover">
+                                </div>
+                                <div class="w-full flex flex-col">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Coffee</span>
+                                    <h4 class="font-serif font-bold text-brand-black text-sm leading-tight line-clamp-1">Latte</h4>
+                                    <span class="font-bold text-brand-black mt-1">170.00</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Item Card 8 -->
+                            <div class="bg-white border border-gray-200 rounded-2xl p-4 flex flex-col items-center justify-between min-h-[220px] shadow-sm hover:shadow-md transition-shadow relative">
+                                <div class="w-full flex justify-between items-start mb-2">
+                                    <input type="checkbox" class="custom-checkbox w-4 h-4 rounded border-gray-300">
+                                    <button class="text-gray-400 hover:text-brand-black"><i class="fa-solid fa-ellipsis"></i></button>
+                                </div>
+                                <div class="w-24 h-24 rounded-full border border-gray-100 overflow-hidden shadow-sm mb-4">
+                                    <img src="https://images.unsplash.com/photo-1541167760496-1628856ab772?w=200&q=80" alt="Cortado" class="w-full h-full object-cover">
+                                </div>
+                                <div class="w-full flex flex-col">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Coffee</span>
+                                    <h4 class="font-serif font-bold text-brand-black text-sm leading-tight line-clamp-1">Cortado</h4>
+                                    <span class="font-bold text-brand-black mt-1">150.00</span>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+        </main>
+
+    </div>
+</body>
+</html>

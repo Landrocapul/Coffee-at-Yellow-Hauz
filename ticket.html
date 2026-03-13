@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yellow Hauz POS - Ticket System</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            DEFAULT: '#FBBF24', // Vintage Mustard Yellow
+                            light: '#FEF9C3',   // Pale Yellow
+                            dark: '#D97706',
+                            black: '#171717',   // Off-black for vintage feel
+                        },
+                        vintage: {
+                            paper: '#F5F4F0',   // Slight off-white paper look
+                            border: '#E5E5E5'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #E5E5E5; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #A3A3A3; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        
+        /* Dashed separator for ticket items */
+        .ticket-item:not(:last-child) {
+            border-bottom: 1px dashed #E5E5E5;
+            padding-bottom: 0.875rem;
+            margin-bottom: 0.875rem;
+        }
+    </style>
+</head>
+<body class="bg-[#EAE8E3] h-screen w-screen p-4 md:p-6 flex items-center justify-center font-sans text-brand-black overflow-hidden">
+
+    <!-- Main App Container -->
+    <div class="bg-vintage-paper w-full max-w-[1440px] h-full rounded-[32px] shadow-2xl flex overflow-hidden border border-gray-300 relative">
+        
+        <!-- ================= LEFT SIDEBAR ================= -->
+        <aside class="w-[240px] bg-white border-r border-vintage-border flex flex-col justify-between py-6 px-4 shrink-0 z-20 relative">
+            <div>
+                <!-- Logo -->
+                <div class="flex flex-col items-center justify-center mb-10 mt-2 text-center">
+                    <span class="font-serif italic text-sm text-gray-500 mb-1">Coffee at</span>
+                    <h1 class="font-serif font-bold text-2xl leading-none text-brand-black tracking-tight uppercase">Yellow Hauz</h1>
+                    <div class="flex items-center gap-2 mt-2">
+                        <div class="h-px w-4 bg-brand"></div>
+                        <span class="text-[10px] tracking-[0.2em] text-gray-400 uppercase font-semibold">Since 2007</span>
+                        <div class="h-px w-4 bg-brand"></div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="space-y-1.5">
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-mug-hot w-5 text-center"></i> Menu
+                    </a>
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-utensils w-5 text-center"></i> Table Services
+                    </a>
+                    
+                    <!-- NEW ACTIVE NAV ITEM: Tickets -->
+                    <a href="#" class="flex items-center gap-4 bg-brand-black text-brand px-4 py-3.5 rounded-2xl font-semibold shadow-md transition-all">
+                        <i class="fa-solid fa-receipt w-5 text-center"></i> Tickets
+                    </a>
+
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-clipboard-list w-5 text-center"></i> Manage Food Items
+                    </a>
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i> Accounting
+                    </a>
+                    <a href="#" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-gear w-5 text-center"></i> Settings
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Bottom Users / Logout -->
+            <div class="space-y-4">
+                <hr class="border-gray-200">
+                <a href="#" class="flex items-center gap-3 text-gray-500 hover:text-brand-black px-4 py-2 font-medium transition-all">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- ================= MAIN CONTENT ================= -->
+        <main class="flex-1 flex flex-col relative bg-vintage-paper overflow-hidden">
+            
+            <!-- Top Header -->
+            <header class="h-[88px] flex items-center justify-between px-8 shrink-0 border-b border-gray-200/80 bg-white/60 backdrop-blur-md z-20">
+                <div class="flex items-center gap-4">
+                    <h2 class="text-2xl font-serif font-bold text-brand-black tracking-wide">BARISTA DISPLAY</h2>
+                </div>
+                
+                <!-- Filter Tabs / Stats -->
+                <div class="flex items-center gap-3">
+                    <button class="px-5 py-2 rounded-full bg-brand-black text-white text-sm font-bold flex items-center gap-3 shadow-md hover:bg-gray-800 transition-colors">
+                        All Order <span class="bg-white/20 px-2 py-0.5 rounded-full text-xs border border-white/10">23</span>
+                    </button>
+                    <button class="px-5 py-2 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-brand-black hover:border-brand-black text-sm font-bold flex items-center gap-3 shadow-sm transition-colors">
+                        New Order <span class="bg-gray-100 px-2 py-0.5 rounded-full text-xs text-gray-500 border border-gray-200">6</span>
+                    </button>
+                    <button class="px-5 py-2 rounded-full bg-white border border-gray-200 text-gray-600 hover:text-brand hover:border-brand text-sm font-bold flex items-center gap-3 shadow-sm transition-colors">
+                        Take Away <span class="bg-brand-light px-2 py-0.5 rounded-full text-xs text-brand-dark border border-brand/50">1</span>
+                    </button>
+                    <button class="px-5 py-2 rounded-full bg-white border-2 border-red-500 text-red-600 hover:bg-red-50 text-sm font-bold flex items-center gap-3 shadow-sm transition-colors relative">
+                        Overdue <span class="bg-red-100 px-2 py-0.5 rounded-full text-xs border border-red-200">1</span>
+                        <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                        </span>
+                    </button>
+                    <div class="h-6 w-px bg-gray-300 mx-1"></div>
+                    <button class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:text-brand-black hover:border-brand-black transition-colors shadow-sm">
+                        <i class="fa-solid fa-gear"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Workspace: Ticket Grid -->
+            <div class="flex-1 overflow-y-auto p-8 pb-[140px] hide-scrollbar relative z-0">
+                
+                <!-- Masonry Columns Layout -->
+                <div class="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-6">
+                    
+                    <!-- Ticket 1: Dine In -->
+                    <div class="break-inside-avoid mb-6 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                        <!-- Header -->
+                        <div class="bg-brand-black text-white p-4 flex items-center justify-between border-b border-brand-black">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-white text-brand-black font-bold flex items-center justify-center text-lg shadow-inner">2</div>
+                                <div>
+                                    <h3 class="font-bold text-base leading-tight">Dine in</h3>
+                                    <p class="text-[11px] text-gray-300 font-medium tracking-wide">Order at : 4:50pm</p>
+                                </div>
+                            </div>
+                            <button class="text-gray-300 hover:text-white transition-colors"><i class="fa-solid fa-ellipsis-vertical text-xl"></i></button>
+                        </div>
+                        <!-- Body -->
+                        <div class="p-5">
+                            <div class="ticket-item">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-black mt-0.5">1x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-black text-sm">Spanish Latte</h4>
+                                        <p class="text-xs text-gray-500 font-medium mt-1">Iced</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ticket-item">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-black mt-0.5">1x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-black text-sm">Flat White</h4>
+                                        <p class="text-xs text-brand-dark italic mt-1 flex items-center gap-1"><i class="fa-solid fa-circle-info text-[10px]"></i> Oat milk</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ticket-item border-none pb-0 mb-0">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-black mt-0.5">1x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-black text-sm">Espresso</h4>
+                                        <p class="text-xs text-gray-500 font-medium mt-1">Hot</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ticket 2: Dine In -->
+                    <div class="break-inside-avoid mb-6 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                        <div class="bg-brand-black text-white p-4 flex items-center justify-between border-b border-brand-black">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-white text-brand-black font-bold flex items-center justify-center text-lg shadow-inner">13</div>
+                                <div>
+                                    <h3 class="font-bold text-base leading-tight">Dine in</h3>
+                                    <p class="text-[11px] text-gray-300 font-medium tracking-wide">Order at : 4:57pm</p>
+                                </div>
+                            </div>
+                            <button class="text-gray-300 hover:text-white transition-colors"><i class="fa-solid fa-ellipsis-vertical text-xl"></i></button>
+                        </div>
+                        <div class="p-5">
+                            <div class="ticket-item">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-black mt-0.5">2x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-black text-sm">Cappuccino</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ticket-item">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-black mt-0.5">1x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-black text-sm">Americano</h4>
+                                        <p class="text-xs text-gray-500 font-medium mt-1">Hot</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ticket-item">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-black mt-0.5">1x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-black text-sm">Matcha Tea</h4>
+                                        <p class="text-xs text-gray-500 font-medium mt-1">Cold</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ticket 3: Take Away (Yellow Highlight) -->
+                    <div class="break-inside-avoid mb-6 bg-brand-light/30 rounded-2xl shadow-sm border border-brand/40 overflow-hidden hover:shadow-md transition-shadow">
+                        <div class="bg-brand text-brand-black p-4 flex items-center justify-between border-b border-brand">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-white text-brand-black font-bold flex items-center justify-center text-lg shadow-inner border border-brand-black/10"><i class="fa-solid fa-bag-shopping"></i></div>
+                                <div>
+                                    <h3 class="font-bold text-base leading-tight">Take away : #457201</h3>
+                                    <p class="text-[11px] text-brand-dark font-bold tracking-wide">Order at : 5:10pm</p>
+                                </div>
+                            </div>
+                            <button class="text-brand-dark hover:text-brand-black transition-colors"><i class="fa-solid fa-ellipsis-vertical text-xl"></i></button>
+                        </div>
+                        <!-- Body with Yellow-tint text styling -->
+                        <div class="p-5">
+                            <div class="ticket-item border-brand/20">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-dark mt-0.5">2x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-dark text-sm">Macchiato</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ticket-item border-brand/20">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-dark mt-0.5">1x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-dark text-sm">Cortado</h4>
+                                        <p class="text-xs text-brand-dark italic mt-1 font-medium">Extra shot</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ticket-item border-brand/20">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-dark mt-0.5">1x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-dark text-sm">Americano</h4>
+                                        <p class="text-xs text-brand-dark font-medium mt-1">Hot</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ticket-item border-brand/20">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-dark mt-0.5">2x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-dark text-sm">Classic Croissant</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ticket 4: OVERDUE (Red Highlight & Pulsing Border) -->
+                    <div class="break-inside-avoid mb-6 bg-white rounded-2xl shadow-[0_0_15px_rgba(220,38,38,0.2)] border border-red-500 overflow-hidden relative">
+                        <!-- Pulsing glow overlay -->
+                        <div class="absolute inset-0 border-2 border-red-500 rounded-2xl animate-pulse pointer-events-none"></div>
+                        
+                        <div class="bg-red-600 text-white p-4 flex items-center justify-between border-b border-red-700 relative z-10">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-white text-red-600 font-bold flex items-center justify-center text-lg shadow-inner">3</div>
+                                <div>
+                                    <h3 class="font-bold text-base leading-tight">Dine in</h3>
+                                    <p class="text-[11px] text-red-200 font-bold tracking-wide">Order at : 4:30pm</p>
+                                </div>
+                            </div>
+                            <button class="text-red-200 hover:text-white transition-colors"><i class="fa-solid fa-ellipsis-vertical text-xl"></i></button>
+                        </div>
+                        <div class="p-5 relative z-10">
+                            <div class="ticket-item border-red-100">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-black mt-0.5">1x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-black text-sm">Cappuccino</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ticket-item border-red-100">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-black mt-0.5">1x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-black text-sm">Spanish Latte</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ticket-item border-red-100">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-black mt-0.5">1x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-black text-sm">Chocolate Chip Cookie</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ticket 5: Dine In WITH MODIFICATION -->
+                    <div class="break-inside-avoid mb-6 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                        <div class="bg-brand-black text-white p-4 flex items-center justify-between border-b border-brand-black">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-white text-brand-black font-bold flex items-center justify-center text-lg shadow-inner">5</div>
+                                <div>
+                                    <h3 class="font-bold text-base leading-tight">Dine in</h3>
+                                    <p class="text-[11px] text-gray-300 font-medium tracking-wide">Order at : 5:11pm</p>
+                                </div>
+                            </div>
+                            <button class="text-gray-300 hover:text-white transition-colors"><i class="fa-solid fa-ellipsis-vertical text-xl"></i></button>
+                        </div>
+                        <div class="p-5">
+                            <div class="ticket-item">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-black mt-0.5">1x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-black text-sm">Flat White</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Modified Item Alert -->
+                            <div class="ticket-item">
+                                <div class="flex items-center justify-between text-brand-dark bg-brand-light/60 -mx-2 px-2 py-1.5 rounded-lg border border-brand/20">
+                                    <div class="flex items-start gap-3">
+                                        <span class="font-bold mt-0.5 line-through decoration-2 opacity-70">1x</span>
+                                        <h4 class="font-bold text-sm line-through decoration-2 opacity-70">Caramel Macchiato</h4>
+                                    </div>
+                                    <i class="fa-solid fa-flag text-red-500 text-sm animate-bounce" title="Order Modification Alert"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="ticket-item">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-black mt-0.5">1x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-black text-sm">Matcha Tea</h4>
+                                        <p class="text-xs text-gray-500 font-medium mt-1">Cold</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ticket-item">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-black mt-0.5">2x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-black text-sm">Water</h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ticket 6: Dine In -->
+                    <div class="break-inside-avoid mb-6 bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                        <div class="bg-brand-black text-white p-4 flex items-center justify-between border-b border-brand-black">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-white text-brand-black font-bold flex items-center justify-center text-lg shadow-inner">8</div>
+                                <div>
+                                    <h3 class="font-bold text-base leading-tight">Dine in</h3>
+                                    <p class="text-[11px] text-gray-300 font-medium tracking-wide">Order at : 5:21pm</p>
+                                </div>
+                            </div>
+                            <button class="text-gray-300 hover:text-white transition-colors"><i class="fa-solid fa-ellipsis-vertical text-xl"></i></button>
+                        </div>
+                        <div class="p-5">
+                            <div class="ticket-item">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-black mt-0.5">3x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-black text-sm">Espresso</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ticket-item">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-black mt-0.5">1x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-black text-sm">Cortado</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ticket-item border-none pb-0 mb-0">
+                                <div class="flex items-start gap-3">
+                                    <span class="font-bold text-brand-black mt-0.5">1x</span>
+                                    <div>
+                                        <h4 class="font-bold text-brand-black text-sm">Spanish Latte</h4>
+                                        <p class="text-xs text-brand-dark italic mt-1 flex items-center gap-1"><i class="fa-solid fa-circle-info text-[10px]"></i> Almond milk</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Bottom Ticket Scroller -->
+            <div class="absolute bottom-0 left-0 right-0 h-[100px] bg-vintage-paper border-t border-gray-300 px-8 flex items-center gap-4 overflow-x-auto hide-scrollbar z-10 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] backdrop-blur-md">
+                
+                <!-- Scroller Item (Dine In) -->
+                <div class="flex flex-col items-center shrink-0 w-[88px] cursor-pointer hover:-translate-y-1 transition-transform">
+                    <div class="w-full h-12 bg-brand-black text-white rounded-t-xl flex items-center justify-center font-bold text-xl border border-brand-black">2</div>
+                    <div class="w-full h-8 bg-white border border-t-0 border-gray-200 rounded-b-xl flex items-center justify-center text-[11px] font-bold text-gray-500 shadow-sm">4:50pm</div>
+                </div>
+
+                <!-- Scroller Item (Dine In) -->
+                <div class="flex flex-col items-center shrink-0 w-[88px] cursor-pointer hover:-translate-y-1 transition-transform">
+                    <div class="w-full h-12 bg-brand-black text-white rounded-t-xl flex items-center justify-center font-bold text-xl border border-brand-black">13</div>
+                    <div class="w-full h-8 bg-white border border-t-0 border-gray-200 rounded-b-xl flex items-center justify-center text-[11px] font-bold text-gray-500 shadow-sm">4:57pm</div>
+                </div>
+
+                <!-- Scroller Item (Overdue) -->
+                <div class="flex flex-col items-center shrink-0 w-[88px] cursor-pointer hover:-translate-y-1 transition-transform animate-pulse relative">
+                    <div class="w-full h-12 bg-red-600 text-white rounded-t-xl flex items-center justify-center font-bold text-xl border border-red-600">3</div>
+                    <div class="w-full h-8 bg-white border border-t-0 border-gray-200 rounded-b-xl flex items-center justify-center text-[11px] font-bold text-red-600 shadow-sm">4:30pm</div>
+                </div>
+
+                <!-- Scroller Item (Take Away) -->
+                <div class="flex flex-col items-center shrink-0 w-[88px] cursor-pointer hover:-translate-y-1 transition-transform">
+                    <div class="w-full h-12 bg-brand text-brand-black rounded-t-xl flex items-center justify-center font-bold text-xl border border-brand"><i class="fa-solid fa-bag-shopping"></i></div>
+                    <div class="w-full h-8 bg-white border border-t-0 border-gray-200 rounded-b-xl flex items-center justify-center text-[11px] font-bold text-gray-600 shadow-sm">5:10pm</div>
+                </div>
+
+                <!-- Scroller Item (Dine In) -->
+                <div class="flex flex-col items-center shrink-0 w-[88px] cursor-pointer hover:-translate-y-1 transition-transform relative">
+                    <div class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border border-white z-10"></div>
+                    <div class="w-full h-12 bg-brand-black text-white rounded-t-xl flex items-center justify-center font-bold text-xl border border-brand-black">5</div>
+                    <div class="w-full h-8 bg-white border border-t-0 border-gray-200 rounded-b-xl flex items-center justify-center text-[11px] font-bold text-gray-500 shadow-sm">5:11pm</div>
+                </div>
+
+                <!-- Scroller Item (Dine In) -->
+                <div class="flex flex-col items-center shrink-0 w-[88px] cursor-pointer hover:-translate-y-1 transition-transform opacity-70">
+                    <div class="w-full h-12 bg-brand-black text-white rounded-t-xl flex items-center justify-center font-bold text-xl border border-brand-black">7</div>
+                    <div class="w-full h-8 bg-white border border-t-0 border-gray-200 rounded-b-xl flex items-center justify-center text-[11px] font-bold text-gray-500 shadow-sm">5:11pm</div>
+                </div>
+
+                <!-- Scroller Item (Dine In) -->
+                <div class="flex flex-col items-center shrink-0 w-[88px] cursor-pointer hover:-translate-y-1 transition-transform opacity-70">
+                    <div class="w-full h-12 bg-brand-black text-white rounded-t-xl flex items-center justify-center font-bold text-xl border border-brand-black">8</div>
+                    <div class="w-full h-8 bg-white border border-t-0 border-gray-200 rounded-b-xl flex items-center justify-center text-[11px] font-bold text-gray-500 shadow-sm">5:21pm</div>
+                </div>
+
+            </div>
+            
+        </main>
+
+    </div>
+</body>
+</html>
