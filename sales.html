@@ -51,7 +51,7 @@
     <div class="bg-vintage-paper w-full max-w-[1440px] h-full rounded-[32px] shadow-2xl flex overflow-hidden border border-gray-300 relative">
         
         <!-- ================= LEFT SIDEBAR ================= -->
-        <aside class="w-[240px] bg-white border-r border-vintage-border flex flex-col justify-between py-6 px-4 shrink-0 z-20 relative">
+        <aside id="sidebar" class="w-[240px] bg-white border-r border-vintage-border flex flex-col justify-between py-6 px-4 shrink-0 z-20 relative transition-all duration-300 ease-in-out">
             <div>
                 <!-- Logo -->
                 <div class="flex flex-col items-center justify-center mb-10 mt-2 text-center">
@@ -65,30 +65,30 @@
                 </div>
 
                 <!-- Navigation -->
-                <nav class="space-y-1.5">
+                <nav id="navigation" class="space-y-1.5">
                     <a href="menu.html" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
-                        <i class="fa-solid fa-mug-hot w-5 text-center"></i> Menu
+                        <i class="fa-solid fa-mug-hot w-5 text-center"></i> <span class="nav-text">Menu</span>
                     </a>
                     <a href="table.html" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
-                        <i class="fa-solid fa-utensils w-5 text-center"></i> Table Services
+                        <i class="fa-solid fa-utensils w-5 text-center"></i> <span class="nav-text">Table Services</span>
                     </a>
                     <a href="ticket.html" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
-                        <i class="fa-solid fa-receipt w-5 text-center"></i> Tickets
+                        <i class="fa-solid fa-receipt w-5 text-center"></i> <span class="nav-text">Tickets</span>
                     </a>
-                   <a href="items.html" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
-                        <i class="fa-solid fa-clipboard-list w-5 text-center"></i> Manage Food Items
+                    <a href="items.html" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
+                        <i class="fa-solid fa-clipboard-list w-5 text-center"></i> <span class="nav-text">Manage Food Items</span>
                     </a>
                     
                     <a href="#" class="flex items-center gap-4 bg-brand-black text-brand px-4 py-3.5 rounded-2xl font-semibold shadow-md transition-all">
-                        <i class="fa-solid fa-chart-line w-5 text-center"></i> Sales Report
+                        <i class="fa-solid fa-chart-line w-5 text-center"></i> <span class="nav-text">Sales Report</span>
                     </a>
-
+                    
                     <a href="analysis.html" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
-                        <i class="fa-solid fa-chart-pie w-5 text-center"></i> Product Analytics
+                        <i class="fa-solid fa-chart-pie w-5 text-center"></i> <span class="nav-text">Product Analytics</span>
                     </a>
 
                     <a href="settings.html" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
-                        <i class="fa-solid fa-gear w-5 text-center"></i> Settings
+                        <i class="fa-solid fa-gear w-5 text-center"></i> <span class="nav-text">Settings</span>
                     </a>
                 </nav>
             </div>
@@ -101,12 +101,12 @@
                             SA
                             <span class="absolute top-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></span>
                         </div>
-                        <span class="text-sm font-medium">Sheila Mae Aledro</span>
+                        <span class="text-sm font-medium nav-text">Sheila Mae Aledro</span>
                     </div>
                 </div>
                 <hr class="border-gray-200">
                 <a href="#" onclick="showLogoutModal()" class="flex items-center gap-3 text-gray-500 hover:text-brand-black px-4 py-2 font-medium transition-all">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i> <span class="nav-text">Logout</span>
                 </a>
             </div>
         </aside>
@@ -117,6 +117,9 @@
             <!-- Top Header & Filters -->
             <header class="h-[88px] flex items-center justify-between px-8 shrink-0 border-b border-gray-200/80 bg-white/60 backdrop-blur-md z-20">
                 <div class="flex items-center gap-4">
+                    <button id="sidebarToggle" class="w-10 h-10 bg-white rounded-xl shadow-sm border border-gray-200 flex items-center justify-center text-gray-500 hover:text-brand-black mr-4">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
                     <h2 class="text-2xl font-serif font-bold text-brand-black tracking-wide">SALES REPORT</h2>
                 </div>
                 
@@ -629,6 +632,83 @@
         function hideLogoutModal() {
             document.getElementById('logoutModal').classList.add('hidden');
         }
+
+        // Sidebar toggle functionality
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const navTexts = document.querySelectorAll('.nav-text');
+        let isCollapsed = false;
+
+        sidebarToggle.addEventListener('click', () => {
+            isCollapsed = !isCollapsed;
+            
+            if (isCollapsed) {
+                // Collapse sidebar
+                sidebar.classList.remove('w-[240px]');
+                sidebar.classList.add('w-[80px]');
+                sidebarToggle.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+                
+                // Hide text elements
+                navTexts.forEach(text => {
+                    text.classList.add('hidden');
+                });
+                
+                // Center icons
+                const navItems = document.querySelectorAll('#navigation a');
+                navItems.forEach(item => {
+                    item.classList.add('justify-center');
+                    item.classList.remove('gap-4');
+                });
+                
+                // Hide logo text
+                const logoText = sidebar.querySelector('h1');
+                const logoSubtext = sidebar.querySelector('span.text-gray-500');
+                const logoDivider = sidebar.querySelectorAll('.h-px');
+                const logoSince = sidebar.querySelector('span.text-gray-400');
+                
+                if (logoText) logoText.classList.add('hidden');
+                if (logoSubtext) logoSubtext.classList.add('hidden');
+                if (logoSince) logoSince.classList.add('hidden');
+                logoDivider.forEach(div => div.classList.add('hidden'));
+                
+                // Hide user name
+                const userName = sidebar.querySelector('.text-sm.font-medium');
+                if (userName) userName.classList.add('hidden');
+                
+            } else {
+                // Expand sidebar
+                sidebar.classList.remove('w-[80px]');
+                sidebar.classList.add('w-[240px]');
+                sidebarToggle.innerHTML = '<i class="fa-solid fa-bars"></i>';
+                
+                // Show text elements
+                navTexts.forEach(text => {
+                    text.classList.remove('hidden');
+                });
+                
+                // Restore nav items
+                const navItems = document.querySelectorAll('#navigation a');
+                navItems.forEach(item => {
+                    item.classList.remove('justify-center');
+                    item.classList.add('gap-4');
+                });
+                
+                // Show logo text
+                const logoText = sidebar.querySelector('h1');
+                const logoSubtext = sidebar.querySelector('span.text-gray-500');
+                const logoDivider = sidebar.querySelectorAll('.h-px');
+                const logoSince = sidebar.querySelector('span.text-gray-400');
+                
+                if (logoText) logoText.classList.remove('hidden');
+                if (logoSubtext) logoSubtext.classList.remove('hidden');
+                if (logoSince) logoSince.classList.remove('hidden');
+                logoDivider.forEach(div => div.classList.remove('hidden'));
+                
+                // Show user name
+                const userName = sidebar.querySelector('.text-sm.font-medium');
+                if (userName) userName.classList.remove('hidden');
+            }
+        });
     </script>
 </body>
 </html>
