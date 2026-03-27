@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$employee_id, $role]);
             $user = $stmt->fetch();
             
-            if ($user && password_verify($password, $user['password'])) {
+            if ($user && $password === $user['password']) {
                 // Update last login
                 $updateStmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
                 $updateStmt->execute([$user['id']]);

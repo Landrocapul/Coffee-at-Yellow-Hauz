@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_role (role)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Categories Table
 CREATE TABLE IF NOT EXISTS categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS categories (
     INDEX idx_sort_order (sort_order)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Menu Items Table
 CREATE TABLE IF NOT EXISTS menu_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     category_id INT NOT NULL,
@@ -46,6 +48,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
     INDEX idx_is_available (is_available)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Tables Table (for table management)
 CREATE TABLE IF NOT EXISTS tables (
     id INT AUTO_INCREMENT PRIMARY KEY,
     table_number INT UNIQUE NOT NULL,
@@ -53,11 +56,11 @@ CREATE TABLE IF NOT EXISTS tables (
     status ENUM('available', 'occupied', 'reserved', 'cleaning') DEFAULT 'available',
     current_order_id INT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (current_order_id) REFERENCES orders(id) ON DELETE SET NULL,
     INDEX idx_table_number (table_number),
     INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Orders Table
 CREATE TABLE IF NOT EXISTS orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_number VARCHAR(50) UNIQUE NOT NULL,
@@ -82,6 +85,7 @@ CREATE TABLE IF NOT EXISTS orders (
     INDEX idx_cashier_id (cashier_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Order Items Table
 CREATE TABLE IF NOT EXISTS order_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
@@ -97,7 +101,7 @@ CREATE TABLE IF NOT EXISTS order_items (
     INDEX idx_menu_item_id (menu_item_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-
+-- Settings Table
 CREATE TABLE IF NOT EXISTS settings (
     id INT AUTO_INCREMENT PRIMARY KEY,
     setting_key VARCHAR(100) UNIQUE NOT NULL,
@@ -108,14 +112,14 @@ CREATE TABLE IF NOT EXISTS settings (
     INDEX idx_setting_key (setting_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Insert Default Data
 
-
-
+-- Insert Default Admin User (password: admin123)
 INSERT INTO users (employee_id, username, password, full_name, role) VALUES
-('ADMIN001', 'admin', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'System Administrator', 'admin'),
-('CASHIER001', 'cashier', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Sheila Mae Aledro', 'cashier');
+('ADMIN001', 'admin', 'admin123', 'System Administrator', 'admin'),
+('CASHIER001', 'cashier', 'admin123', 'Sheila Mae Aledro', 'cashier');
 
-
+-- Insert Default Categories
 INSERT INTO categories (name, icon, sort_order) VALUES
 ('Coffee', 'fa-solid fa-mug-saucer', 1),
 ('On The Rocks', 'fa-solid fa-glass-water', 2),
@@ -124,7 +128,7 @@ INSERT INTO categories (name, icon, sort_order) VALUES
 ('Milk Tea', 'fa-solid fa-leaf', 5),
 ('Food', 'fa-solid fa-cookie', 6);
 
-
+-- Insert Default Menu Items
 INSERT INTO menu_items (category_id, name, description, price, image_url, temperature, is_best_seller, is_available) VALUES
 (1, 'Espresso', 'Pure and intense espresso shot', 100.00, 'https://plus.unsplash.com/premium_photo-1669687924558-386bff1a0469?q=80&w=688&auto=format&fit=crop', 'hot', FALSE, TRUE),
 (1, 'Cappuccino', 'Espresso with steamed milk and foam', 170.00, 'https://images.unsplash.com/photo-1534778101976-62847782c213?w=500&q=80', 'hot', TRUE, TRUE),
@@ -135,7 +139,7 @@ INSERT INTO menu_items (category_id, name, description, price, image_url, temper
 (1, 'Cortado', 'Equal parts espresso and steamed milk', 150.00, 'https://images.unsplash.com/photo-1519532059956-a63a37af5deb?w=500&q=80', 'hot', FALSE, TRUE),
 (1, 'Latte', 'Smooth espresso with steamed milk', 170.00, 'https://images.unsplash.com/photo-1610889556528-9a770e32642f?w=200&q=80', 'hot', FALSE, TRUE);
 
-
+-- Insert Default Tables
 INSERT INTO tables (table_number, capacity, status) VALUES
 (1, 4, 'available'),
 (2, 4, 'available'),
@@ -146,7 +150,7 @@ INSERT INTO tables (table_number, capacity, status) VALUES
 (7, 4, 'available'),
 (8, 4, 'available');
 
-
+-- Insert Default Settings
 INSERT INTO settings (setting_key, setting_value, setting_type, description) VALUES
 ('tax_rate', '12', 'number', 'Default tax rate percentage'),
 ('currency', 'PHP', 'string', 'Currency symbol'),

@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     } elseif ($action === 'add_user') {
         $employeeId = sanitize($_POST['employee_id']);
         $username = sanitize($_POST['username']);
-        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+        $password = $_POST['password'];
         $fullName = sanitize($_POST['full_name']);
         $role = sanitize($_POST['role']);
         
