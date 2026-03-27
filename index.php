@@ -1,3 +1,51 @@
+<?php
+require_once 'db.php';
+
+// Redirect if already logged in
+if (isLoggedIn()) {
+    redirect('menu.php');
+}
+
+$error = '';
+$success = '';
+
+// Handle login form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $employee_id = sanitize($_POST['employee_id'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $role = sanitize($_POST['role'] ?? 'cashier');
+    
+    if (empty($employee_id) || empty($password)) {
+        $error = 'Please enter your Employee ID and Password';
+    } else {
+        try {
+            $stmt = $pdo->prepare("SELECT id, employee_id, username, password, full_name, role, status FROM users WHERE employee_id = ? AND role = ? AND status = 'active'");
+            $stmt->execute([$employee_id, $role]);
+            $user = $stmt->fetch();
+            
+            if ($user && password_verify($password, $user['password'])) {
+                // Update last login
+                $updateStmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+                $updateStmt->execute([$user['id']]);
+                
+                // Set session variables
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['employee_id'] = $user['employee_id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['full_name'] = $user['full_name'];
+                $_SESSION['role'] = $user['role'];
+                
+                // Redirect to menu
+                redirect('menu.php');
+            } else {
+                $error = 'Invalid Employee ID or Password';
+            }
+        } catch (PDOException $e) {
+            $error = 'Login failed. Please try again.';
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,13 +68,13 @@
                     },
                     colors: {
                         brand: {
-                            DEFAULT: '#FBBF24', // Vintage Mustard Yellow
-                            light: '#FEF9C3',   // Pale Yellow
+                            DEFAULT: '#FBBF24',
+                            light: '#FEF9C3',
                             dark: '#D97706',
-                            black: '#171717',   // Off-black for vintage feel
+                            black: '#171717',
                         },
                         vintage: {
-                            paper: '#F5F4F0',   // Slight off-white paper look
+                            paper: '#F5F4F0',
                             border: '#E5E5E5'
                         }
                     }
@@ -35,7 +83,6 @@
         }
     </script>
     <style>
-        /* Custom scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #E5E5E5; border-radius: 10px; }
@@ -44,18 +91,15 @@
 </head>
 <body class="bg-[#EAE8E3] h-screen w-screen p-4 md:p-6 flex items-center justify-center font-sans text-brand-black overflow-hidden">
 
-    <!-- Main App Container -->
     <div class="bg-vintage-paper w-full max-w-[1440px] h-full rounded-[32px] shadow-2xl flex overflow-hidden border border-gray-300 relative">
         
-        <!-- ================= LEFT SIDE (IMAGE & BRANDING) ================= -->
+        <!-- LEFT SIDE (IMAGE & BRANDING) -->
         <div class="hidden lg:flex w-1/2 relative bg-brand-black items-center justify-center overflow-hidden">
-            <!-- Background Image with Overlay -->
             <div class="absolute inset-0 z-0">
                 <img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=1200&q=80" alt="Vintage Coffee Shop" class="w-full h-full object-cover opacity-40">
                 <div class="absolute inset-0 bg-gradient-to-t from-brand-black via-brand-black/80 to-transparent"></div>
             </div>
 
-            <!-- Centered Branding -->
             <div class="relative z-10 flex flex-col items-center justify-center text-center p-12">
                 <div class="w-24 h-24 border-4 border-brand rounded-full flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(251,191,36,0.3)]">
                     <i class="fa-solid fa-mug-hot text-4xl text-brand"></i>
@@ -73,7 +117,7 @@
             </div>
         </div>
 
-        <!-- ================= RIGHT SIDE (LOGIN FORM) ================= -->
+        <!-- RIGHT SIDE (LOGIN FORM) -->
         <div class="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 sm:p-12 relative bg-vintage-paper">
             
             <!-- Mobile Logo (Hidden on Desktop) -->
@@ -96,9 +140,21 @@
                     <p class="text-gray-500 text-sm font-medium">Please sign in to access the POS system.</p>
                 </div>
 
+                <!-- Error/Success Messages -->
+                <?php if ($error): ?>
+                <div class="mb-6 p-4 bg-red-100 border border-red-300 rounded-xl text-red-700 text-sm font-medium">
+                    <i class="fa-solid fa-circle-exclamation mr-2"></i><?php echo $error; ?>
+                </div>
+                <?php endif; ?>
+
+                <?php if ($success): ?>
+                <div class="mb-6 p-4 bg-green-100 border border-green-300 rounded-xl text-green-700 text-sm font-medium">
+                    <i class="fa-solid fa-circle-check mr-2"></i><?php echo $success; ?>
+                </div>
+                <?php endif; ?>
+
                 <!-- FORM -->
-                <!-- Note: The action is set to menu.html to simulate successful login routing -->
-                <form action="menu.html" method="GET" class="space-y-6">
+                <form action="index.php" method="POST" class="space-y-6">
                     
                     <!-- Hidden input to store selected role -->
                     <input type="hidden" id="role-input" name="role" value="cashier">
@@ -120,7 +176,7 @@
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                 <i class="fa-solid fa-user text-gray-400"></i>
                             </div>
-                            <input type="text" placeholder="Enter your ID" required
+                            <input type="text" name="employee_id" placeholder="Enter your ID" required
                                 class="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-4 py-3.5 text-sm font-bold text-brand-black focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all shadow-sm">
                         </div>
                     </div>
@@ -135,10 +191,10 @@
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                 <i class="fa-solid fa-lock text-gray-400"></i>
                             </div>
-                            <input type="password" placeholder="••••••••" required
+                            <input type="password" name="password" placeholder="••••••••" required
                                 class="w-full bg-white border border-gray-200 rounded-xl pl-11 pr-12 py-3.5 text-sm font-bold text-brand-black focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent transition-all shadow-sm tracking-[0.2em]">
-                            <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-brand-black transition-colors">
-                                <i class="fa-solid fa-eye-slash"></i>
+                            <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-brand-black transition-colors" onclick="togglePassword()">
+                                <i class="fa-solid fa-eye-slash" id="password-toggle-icon"></i>
                             </button>
                         </div>
                     </div>
@@ -172,19 +228,29 @@
             const cashierBtn = document.getElementById('btn-cashier');
             const roleInput = document.getElementById('role-input');
 
-            // Update hidden input value
             roleInput.value = role;
 
             if(role === 'admin') {
-                // Style Admin as Active
                 adminBtn.className = "flex-1 py-3 bg-brand-light rounded-lg shadow-sm border border-brand/30 text-brand-dark font-bold flex items-center justify-center gap-2 transition-all relative z-10";
-                // Style Cashier as Inactive
                 cashierBtn.className = "flex-1 py-3 text-gray-500 hover:text-brand-black font-bold flex items-center justify-center gap-2 transition-all border border-transparent relative z-10";
             } else {
-                // Style Cashier as Active
                 cashierBtn.className = "flex-1 py-3 bg-brand-light rounded-lg shadow-sm border border-brand/30 text-brand-dark font-bold flex items-center justify-center gap-2 transition-all relative z-10";
-                // Style Admin as Inactive
                 adminBtn.className = "flex-1 py-3 text-gray-500 hover:text-brand-black font-bold flex items-center justify-center gap-2 transition-all border border-transparent relative z-10";
+            }
+        }
+
+        function togglePassword() {
+            const passwordInput = document.querySelector('input[name="password"]');
+            const toggleIcon = document.getElementById('password-toggle-icon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
             }
         }
     </script>

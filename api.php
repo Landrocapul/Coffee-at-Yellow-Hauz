@@ -1,0 +1,254 @@
+<?php
+require_once 'db.php';
+
+// Set JSON header
+header('Content-Type: application/json');
+
+// Check if user is logged in for protected endpoints
+if (!isLoggedIn()) {
+    echo json_encode(['success' => false, 'error' => 'Unauthorized']);
+    exit;
+}
+
+// Get request method and action
+$method = $_SERVER['REQUEST_METHOD'];
+$action = $_GET['action'] ?? '';
+
+try {
+    switch ($action) {
+        case 'get_menu_items':
+            if ($method === 'GET') {
+                $categoryId = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
+                
+                if ($categoryId > 0) {
+                    $stmt = $pdo->prepare("SELECT * FROM menu_items WHERE category_id = ? AND is_available = 1 ORDER BY sort_order ASC");
+                    $stmt->execute([$categoryId]);
+                } else {
+                    $stmt = $pdo->query("SELECT * FROM menu_items WHERE is_available = 1 ORDER BY category_id, sort_order ASC");
+                }
+                
+                $items = $stmt->fetchAll();
+                echo json_encode(['success' => true, 'data' => $items]);
+            }
+            break;
+
+        case 'get_categories':
+            if ($method === 'GET') {
+                $stmt = $pdo->query("SELECT * FROM categories WHERE status = 'active' ORDER BY sort_order ASC");
+                $categories = $stmt->fetchAll();
+                echo json_encode(['success' => true, 'data' => $categories]);
+            }
+            break;
+
+        case 'get_tables':
+            if ($method === 'GET') {
+                $stmt = $pdo->query("SELECT * FROM tables ORDER BY table_number ASC");
+                $tables = $stmt->fetchAll();
+                echo json_encode(['success' => true, 'data' => $tables]);
+            }
+            break;
+
+        case 'update_table_status':
+            if ($method === 'POST') {
+                $input = json_decode(file_get_contents('php://input'), true);
+                $tableId = (int)$input['table_id'];
+                $status = sanitize($input['status']);
+                
+                $stmt = $pdo->prepare("UPDATE tables SET status = ? WHERE id = ?");
+                $stmt->execute([$status, $tableId]);
+                
+                echo json_encode(['success' => true]);
+            }
+            break;
+
+        case 'get_cart':
+            if ($method === 'GET') {
+                echo json_encode(['success' => true, 'data' => $_SESSION['cart'] ?? []]);
+            }
+            break;
+
+        case 'add_to_cart':
+            if ($method === 'POST') {
+                $input = json_decode(file_get_contents('php://input'), true);
+                $itemId = (int)$input['item_id'];
+                $quantity = (int)$input['quantity'];
+                
+                $stmt = $pdo->prepare("SELECT id, name, price, image_url FROM menu_items WHERE id = ? AND is_available = 1");
+                $stmt->execute([$itemId]);
+                $item = $stmt->fetch();
+                
+                if (!$item) {
+                    echo json_encode(['success' => false, 'error' => 'Item not found']);
+                    exit;
+                }
+                
+                if (!isset($_SESSION['cart'])) {
+                    $_SESSION['cart'] = [];
+                }
+                
+                if (isset($_SESSION['cart'][$itemId])) {
+                    $_SESSION['cart'][$itemId]['quantity'] += $quantity;
+                } else {
+                    $_SESSION['cart'][$itemId] = [
+                        'id' => $item['id'],
+                        'name' => $item['name'],
+                        'price' => $item['price'],
+                        'image_url' => $item['image_url'],
+                        'quantity' => $quantity
+                    ];
+                }
+                
+                echo json_encode(['success' => true, 'data' => $_SESSION['cart']]);
+            }
+            break;
+
+        case 'update_cart_quantity':
+            if ($method === 'POST') {
+                $input = json_decode(file_get_contents('php://input'), true);
+                $itemId = (int)$input['item_id'];
+                $quantity = (int)$input['quantity'];
+                
+                if (!isset($_SESSION['cart'])) {
+                    $_SESSION['cart'] = [];
+                }
+                
+                if ($quantity <= 0) {
+                    unset($_SESSION['cart'][$itemId]);
+                } elseif (isset($_SESSION['cart'][$itemId])) {
+                    $_SESSION['cart'][$itemId]['quantity'] = $quantity;
+                }
+                
+                echo json_encode(['success' => true, 'data' => $_SESSION['cart']]);
+            }
+            break;
+
+        case 'remove_from_cart':
+            if ($method === 'POST') {
+                $input = json_decode(file_get_contents('php://input'), true);
+                $itemId = (int)$input['item_id'];
+                
+                if (isset($_SESSION['cart'][$itemId])) {
+                    unset($_SESSION['cart'][$itemId]);
+                }
+                
+                echo json_encode(['success' => true, 'data' => $_SESSION['cart'] ?? []]);
+            }
+            break;
+
+        case 'clear_cart':
+            if ($method === 'POST') {
+                $_SESSION['cart'] = [];
+                echo json_encode(['success' => true, 'data' => []]);
+            }
+            break;
+
+        case 'create_order':
+            if ($method === 'POST') {
+                $input = json_decode(file_get_contents('php://input'), true);
+                
+                if (empty($_SESSION['cart'])) {
+                    echo json_encode(['success' => false, 'error' => 'Cart is empty']);
+                    exit;
+                }
+                
+                $tableId = isset($input['table_id']) ? (int)$input['table_id'] : null;
+                $customerName = sanitize($input['customer_name'] ?? '');
+                $orderType = sanitize($input['order_type'] ?? 'dine_in');
+                $paymentMethod = sanitize($input['payment_method'] ?? 'cash');
+                
+                $orderNumber = generateOrderNumber();
+                $subtotal = 0;
+                foreach ($_SESSION['cart'] as $item) {
+                    $subtotal += $item['price'] * $item['quantity'];
+                }
+                
+                $taxRate = getSetting('tax_rate') ? (float)getSetting('tax_rate') : 12;
+                $taxAmount = $subtotal * ($taxRate / 100);
+                $totalAmount = $subtotal + $taxAmount;
+                
+                $stmt = $pdo->prepare("INSERT INTO orders (order_number, table_id, customer_name, order_type, payment_method, subtotal, tax_rate, tax_amount, total_amount, cashier_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'completed')");
+                $stmt->execute([$orderNumber, $tableId, $customerName, $orderType, $paymentMethod, $subtotal, $taxRate, $taxAmount, $totalAmount, $currentUser['id']]);
+                
+                $orderId = $pdo->lastInsertId();
+                
+                // Insert order items
+                foreach ($_SESSION['cart'] as $item) {
+                    $totalPrice = $item['price'] * $item['quantity'];
+                    $stmt = $pdo->prepare("INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)");
+                    $stmt->execute([$orderId, $item['id'], $item['quantity'], $item['price'], $totalPrice]);
+                }
+                
+                // Update table status if applicable
+                if ($tableId) {
+                    $stmt = $pdo->prepare("UPDATE tables SET status = 'available', current_order_id = NULL WHERE id = ?");
+                    $stmt->execute([$tableId]);
+                }
+                
+                $_SESSION['cart'] = [];
+                
+                echo json_encode(['success' => true, 'order_id' => $orderId, 'order_number' => $orderNumber]);
+            }
+            break;
+
+        case 'get_active_orders':
+            if ($method === 'GET') {
+                $stmt = $pdo->prepare("SELECT o.*, t.table_number, u.full_name as cashier_name 
+                                      FROM orders o 
+                                      LEFT JOIN tables t ON o.table_id = t.id 
+                                      LEFT JOIN users u ON o.cashier_id = u.id 
+                                      WHERE o.status IN ('pending', 'processing') 
+                                      ORDER BY o.created_at DESC");
+                $stmt->execute();
+                $orders = $stmt->fetchAll();
+                echo json_encode(['success' => true, 'data' => $orders]);
+            }
+            break;
+
+        case 'update_order_status':
+            if ($method === 'POST') {
+                $input = json_decode(file_get_contents('php://input'), true);
+                $orderId = (int)$input['order_id'];
+                $status = sanitize($input['status']);
+                
+                $stmt = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
+                $stmt->execute([$status, $orderId]);
+                
+                echo json_encode(['success' => true]);
+            }
+            break;
+
+        case 'get_order_details':
+            if ($method === 'GET') {
+                $orderId = (int)$_GET['order_id'];
+                
+                $stmt = $pdo->prepare("SELECT o.*, t.table_number 
+                                      FROM orders o 
+                                      LEFT JOIN tables t ON o.table_id = t.id 
+                                      WHERE o.id = ?");
+                $stmt->execute([$orderId]);
+                $order = $stmt->fetch();
+                
+                if (!$order) {
+                    echo json_encode(['success' => false, 'error' => 'Order not found']);
+                    exit;
+                }
+                
+                $stmt = $pdo->prepare("SELECT oi.*, mi.name, mi.image_url 
+                                      FROM order_items oi 
+                                      JOIN menu_items mi ON oi.menu_item_id = mi.id 
+                                      WHERE oi.order_id = ?");
+                $stmt->execute([$orderId]);
+                $items = $stmt->fetchAll();
+                
+                echo json_encode(['success' => true, 'data' => ['order' => $order, 'items' => $items]]);
+            }
+            break;
+
+        default:
+            echo json_encode(['success' => false, 'error' => 'Invalid action']);
+            break;
+    }
+} catch (PDOException $e) {
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+}
+?>
