@@ -150,7 +150,7 @@ $totalItems = array_sum($categoryCounts);
     <div class="bg-vintage-paper w-full max-w-[1440px] h-full rounded-[32px] shadow-2xl flex overflow-hidden border border-gray-300 relative">
         
         <!-- LEFT SIDEBAR -->
-        <aside id="sidebar" class="w-[240px] bg-white border-r border-vintage-border flex flex-col justify-between py-6 px-4 shrink-0 z-20 relative transition-all duration-300 ease-in-out">
+        <aside id="sidebar" class="w-[80px] bg-white border-r border-vintage-border flex flex-col justify-between py-6 px-4 shrink-0 z-20 relative transition-all duration-300 ease-in-out">
             <div>
                 <!-- Logo -->
                 <div class="flex flex-col items-center justify-center mb-10 mt-2 text-center">
@@ -517,7 +517,28 @@ $totalItems = array_sum($categoryCounts);
         const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebarToggle');
         const navTexts = document.querySelectorAll('.nav-text');
-        let isCollapsed = false;
+        let isCollapsed = true;
+
+        // Apply collapsed state by default
+        sidebarToggle.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+        navTexts.forEach(text => {
+            text.classList.add('hidden');
+        });
+        const navItems = document.querySelectorAll('#navigation a');
+        navItems.forEach(item => {
+            item.classList.add('justify-center');
+            item.classList.remove('gap-4');
+        });
+        const logoText = sidebar.querySelector('h1');
+        const logoSubtext = sidebar.querySelector('span.text-gray-500');
+        const logoDivider = sidebar.querySelectorAll('.h-px');
+        const logoSince = sidebar.querySelector('span.text-gray-400');
+        if (logoText) logoText.classList.add('hidden');
+        if (logoSubtext) logoSubtext.classList.add('hidden');
+        if (logoSince) logoSince.classList.add('hidden');
+        logoDivider.forEach(div => div.classList.add('hidden'));
+        const userName = sidebar.querySelector('.text-sm.font-medium');
+        if (userName) userName.classList.add('hidden');
 
         sidebarToggle.addEventListener('click', () => {
             isCollapsed = !isCollapsed;

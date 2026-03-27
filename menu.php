@@ -154,8 +154,8 @@ $totalAmount = $subtotal + $taxAmount;
 
     <div class="bg-vintage-paper w-full max-w-[1440px] h-full rounded-[32px] shadow-2xl flex overflow-hidden border border-gray-300">
         
-        <!-- LEFT SIDEBAR -->
-        <aside id="sidebar" class="w-[240px] bg-white border-r border-vintage-border flex flex-col justify-between py-6 px-4 shrink-0 z-10 transition-all duration-300 ease-in-out">
+        
+        <aside id="sidebar" class="w-[80px] bg-white border-r border-vintage-border flex flex-col justify-between py-6 px-4 shrink-0 z-10 transition-all duration-300 ease-in-out">
             <div>
                 <!-- Logo -->
                 <div class="flex flex-col items-center justify-center mb-10 mt-2 text-center">
@@ -287,26 +287,30 @@ $totalAmount = $subtotal + $taxAmount;
         <aside class="w-[360px] bg-white border-l border-vintage-border flex flex-col shrink-0 z-10 shadow-[-10px_0_20px_rgba(0,0,0,0.02)]">
             
             <!-- Panel Header -->
-            <div class="p-6 pb-4 border-b border-gray-100">
-                <div class="flex justify-between items-start mb-4">
+            <div class="p-4 pb-3 border-b border-gray-100">
+                <div class="flex justify-between items-start mb-3">
                     <div>
-                        <h2 class="text-2xl font-serif font-bold">Table 4</h2>
-                        <p class="text-sm text-gray-500 font-medium mt-1"><?php echo htmlspecialchars($currentUser['full_name']); ?></p>
+                        <h2 class="text-xl font-serif font-bold">Table 4</h2>
+                        <p class="text-xs text-gray-500 font-medium mt-1"><?php echo htmlspecialchars($currentUser['full_name']); ?></p>
                     </div>
-                    <button class="w-10 h-10 rounded-full bg-gray-100 text-brand-black hover:bg-brand hover:text-brand-black transition-colors flex items-center justify-center border border-transparent hover:border-brand-black">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
-                </div>
-
-                <!-- Order Type Tabs -->
-                <div class="bg-gray-100 p-1.5 rounded-xl flex items-center justify-between text-sm font-semibold border border-gray-200">
-                    <button class="flex-1 py-2 bg-white rounded-lg shadow-sm border border-gray-300 text-brand-black">Dine in</button>
-                    <button class="flex-1 py-2 text-gray-500 hover:text-brand-black">Take Away</button>
-                    <button class="flex-1 py-2 text-gray-500 hover:text-brand-black">Delivery</button>
+                    <div class="flex items-center gap-2">
+                        <!-- Order Type Switch -->
+                        <div class="bg-gray-100 p-1 rounded-lg flex items-center text-sm font-semibold border border-gray-200">
+                            <button id="dineInBtn" onclick="setOrderType('dinein')" class="px-3 py-1.5 rounded-md bg-white text-brand-black font-bold shadow-sm border border-gray-300 transition-all">
+                                <i class="fa-solid fa-utensils"></i>
+                            </button>
+                            <button id="takeAwayBtn" onclick="setOrderType('takeaway')" class="px-3 py-1.5 rounded-md text-gray-500 hover:text-brand-black font-semibold transition-all">
+                                <i class="fa-solid fa-bag-shopping"></i>
+                            </button>
+                        </div>
+                        <button class="w-8 h-8 rounded-full bg-gray-100 text-brand-black hover:bg-brand hover:text-brand-black transition-colors flex items-center justify-center border border-transparent hover:border-brand-black">
+                            <i class="fa-solid fa-pen text-sm"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-6 space-y-4">
+            <div class="flex-1 overflow-y-auto p-4 space-y-3">
                 <?php if (empty($_SESSION['cart'])): ?>
                 <div class="text-center py-8 text-gray-400">
                     <i class="fa-solid fa-cart-shopping text-4xl mb-3"></i>
@@ -314,8 +318,8 @@ $totalAmount = $subtotal + $taxAmount;
                 </div>
                 <?php else: ?>
                 <?php foreach ($_SESSION['cart'] as $item): ?>
-                <div class="flex gap-3 border border-gray-200 p-3 rounded-2xl shadow-sm bg-white">
-                    <img src="<?php echo htmlspecialchars($item['image_url']); ?>" class="w-14 h-14 rounded-xl object-cover shrink-0 border border-gray-100">
+                <div class="flex gap-2 border border-gray-200 p-2 rounded-xl shadow-sm bg-white">
+                    <img src="<?php echo htmlspecialchars($item['image_url']); ?>" class="w-12 h-12 rounded-lg object-cover shrink-0 border border-gray-100">
                     <div class="flex-1 flex flex-col justify-between">
                         <h4 class="text-sm font-serif font-bold leading-tight"><?php echo htmlspecialchars($item['name']); ?></h4>
                         <div class="flex justify-between items-center mt-1">
@@ -333,45 +337,27 @@ $totalAmount = $subtotal + $taxAmount;
             </div>
 
             <!-- Totals & Payment Checkout -->
-            <div class="p-6 bg-vintage-paper border-t border-gray-200 shrink-0">
-                <div class="space-y-2 mb-4">
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-600 font-medium">Sub Total</span>
-                        <span class="font-bold text-gray-800"><?php echo formatCurrency($subtotal); ?></span>
-                    </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-gray-600 font-medium">Tax <?php echo $taxRate; ?>%</span>
-                        <span class="font-bold text-gray-800"><?php echo formatCurrency($taxAmount); ?></span>
-                    </div>
-                </div>
-                
-                <hr class="border-gray-300 border-dashed mb-4">
-                
-                <div class="flex justify-between items-center mb-6">
-                    <span class="font-bold text-lg font-serif">Total Amount</span>
-                    <span class="font-bold text-2xl text-brand-black"><?php echo formatCurrency($totalAmount); ?></span>
+            <div class="p-4 bg-vintage-paper border-t border-gray-200 shrink-0">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="font-bold text-base font-serif">Total Amount</span>
+                    <span class="font-bold text-xl text-brand-black"><?php echo formatCurrency($totalAmount); ?></span>
                 </div>
 
-                <!-- Payment Methods -->
-                <div class="grid grid-cols-3 gap-3 mb-6">
-                    <button class="flex flex-col items-center justify-center gap-2 p-3 border-2 border-brand-black bg-brand text-brand-black rounded-xl shadow-[2px_2px_0px_0px_rgba(23,23,23,1)] transition-transform active:translate-y-0.5 active:shadow-none">
-                        <i class="fa-solid fa-money-bill-wave text-xl"></i>
-                        <span class="text-xs font-bold uppercase tracking-wider">Cash</span>
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="showPaymentModal()" class="bg-brand-black text-brand py-3 rounded-xl font-bold text-sm hover:bg-gray-800 transition-colors border border-transparent flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-credit-card"></i>
+                        Payment
                     </button>
-                    <button class="flex flex-col items-center justify-center gap-2 p-3 border border-gray-300 rounded-xl hover:border-brand-black bg-white transition-colors">
-                        <i class="fa-regular fa-credit-card text-xl text-gray-600"></i>
-                        <span class="text-xs font-bold text-gray-600">CARD</span>
+                    <button onclick="showCouponModal()" class="bg-gray-100 text-brand-black py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors border border-gray-300 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-ticket"></i>
+                        Coupon
                     </button>
-                    <button class="flex flex-col items-center justify-center gap-2 p-3 border border-gray-300 rounded-xl hover:border-brand-black bg-white transition-colors">
-                        <i class="fa-solid fa-mobile-screen text-xl text-gray-600"></i>
-                        <span class="text-xs font-bold text-gray-600">GCASH</span>
+                    <button onclick="showBillModal()" class="bg-brand-black text-brand py-3 rounded-xl font-bold text-sm hover:bg-gray-800 transition-colors border border-transparent flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-print"></i>
+                        Print Bill
                     </button>
                 </div>
-
-                <!-- Action Button -->
-                <button class="w-full bg-brand-black text-brand py-4 rounded-xl font-bold text-lg shadow-[4px_4px_0px_0px_rgba(251,191,36,1)] hover:bg-gray-800 transition-all active:translate-y-1 active:translate-x-1 active:shadow-none border border-transparent uppercase tracking-widest">
-                    Print Bill
-                </button>
             </div>
         </aside>
 
@@ -393,6 +379,168 @@ $totalAmount = $subtotal + $taxAmount;
                     Logout
                 </a>
             </div>
+        </div>
+    </div>
+
+    <!-- Bill Modal -->
+    <div id="billModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl max-w-md w-full mx-4 shadow-2xl border border-gray-200 max-h-[90vh] overflow-y-auto">
+            <!-- Bill Header -->
+            <div class="p-6 border-b border-gray-100">
+                <div class="text-center mb-4">
+                    <h3 class="text-2xl font-serif font-bold text-brand-black mb-2">Coffee at Yellow Hauz</h3>
+                    <p class="text-xs text-gray-500">Yellow Hauz, Philippines</p>
+                    <p class="text-xs text-gray-500">+63 912 345 6789</p>
+                </div>
+                
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <p class="text-sm font-bold text-brand-black">Table 4</p>
+                        <p class="text-xs text-gray-500">Dine In</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-gray-500">Order #<?php echo date('Ymd') . rand(100, 999); ?></p>
+                        <p class="text-xs text-gray-500"><?php echo date('M d, Y h:i A'); ?></p>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <p class="text-sm font-bold text-brand-black"><?php echo htmlspecialchars($currentUser['full_name']); ?></p>
+                </div>
+            </div>
+
+            <!-- Bill Items -->
+            <div class="p-6">
+                <div class="space-y-3 mb-6">
+                    <?php if (!empty($_SESSION['cart'])): ?>
+                        <?php foreach ($_SESSION['cart'] as $item): ?>
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-brand-black"><?php echo htmlspecialchars($item['name']); ?></p>
+                                <p class="text-xs text-gray-500"><?php echo $item['quantity']; ?> × <?php echo formatCurrency($item['price']); ?></p>
+                            </div>
+                            <p class="text-sm font-bold text-brand-black"><?php echo formatCurrency($item['price'] * $item['quantity']); ?></p>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <p class="text-center text-gray-400 text-sm">No items in cart</p>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Bill Summary -->
+                <div class="border-t border-gray-200 pt-4 space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600 font-medium">Subtotal</span>
+                        <span class="font-bold"><?php echo formatCurrency($subtotal); ?></span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600 font-medium">Tax (<?php echo $taxRate; ?>%)</span>
+                        <span class="font-bold"><?php echo formatCurrency($taxAmount); ?></span>
+                    </div>
+                    <div class="flex justify-between text-lg font-bold pt-2 border-t border-gray-200">
+                        <span class="text-brand-black">Total</span>
+                        <span class="text-brand-black"><?php echo formatCurrency($totalAmount); ?></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bill Footer -->
+            <div class="p-6 border-t border-gray-100 bg-gray-50">
+                <p class="text-center text-xs text-gray-500 mb-4">Thank you for visiting Coffee at Yellow Hauz!</p>
+                <div class="flex gap-3">
+                    <button onclick="hideBillModal()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors">
+                        Close
+                    </button>
+                    <button onclick="printBill()" class="flex-1 bg-brand-black text-brand py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors">
+                        <i class="fa-solid fa-print mr-2"></i> Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-200">
+            <div class="flex items-center justify-center w-16 h-16 bg-brand-light rounded-full mx-auto mb-4">
+                <i class="fa-solid fa-credit-card text-brand-dark text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-serif font-bold text-brand-black text-center mb-2">Select Payment Method</h3>
+            <p class="text-gray-600 text-center mb-6">Choose your preferred payment option</p>
+            
+            <div class="space-y-3">
+                <button class="w-full flex items-center justify-between p-4 border-2 border-brand-black bg-brand text-brand-black rounded-xl shadow-[2px_2px_0px_0px_rgba(23,23,23,1)] transition-transform active:translate-y-0.5 active:shadow-none">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-money-bill-wave text-xl"></i>
+                        <span class="font-bold">Cash</span>
+                    </div>
+                    <i class="fa-solid fa-check text-brand-black"></i>
+                </button>
+                
+                <button class="w-full flex items-center justify-between p-4 border border-gray-300 rounded-xl hover:border-brand-black bg-white transition-colors">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-regular fa-credit-card text-xl text-gray-600"></i>
+                        <span class="font-bold text-gray-600">Card</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-400"></i>
+                </button>
+                
+                <button class="w-full flex items-center justify-between p-4 border border-gray-300 rounded-xl hover:border-brand-black bg-white transition-colors">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-mobile-screen text-xl text-gray-600"></i>
+                        <span class="font-bold text-gray-600">GCash</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-gray-400"></i>
+                </button>
+            </div>
+            
+            <div class="flex gap-3 mt-6">
+                <button onclick="hidePaymentModal()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="processPayment()" class="flex-1 bg-brand-black text-brand py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors">
+                    Process Payment
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Coupon Modal -->
+    <div id="couponModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-200">
+            <div class="flex items-center justify-center w-16 h-16 bg-brand-light rounded-full mx-auto mb-4">
+                <i class="fa-solid fa-ticket text-brand-dark text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-serif font-bold text-brand-black text-center mb-2">Apply Coupon</h3>
+            <p class="text-gray-600 text-center mb-6">Enter your coupon code to get discounts</p>
+            
+            <form class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Coupon Code</label>
+                    <div class="relative">
+                        <input type="text" placeholder="Enter coupon code" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 pr-12 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+                        <button type="button" class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-brand-black transition-colors">
+                            <i class="fa-solid fa-qrcode"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600">Discount Applied</span>
+                        <span class="font-bold text-green-600">-₱0.00</span>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="hideCouponModal()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="button" onclick="applyCoupon()" class="flex-1 bg-brand-black text-brand py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors">
+                        Apply
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -457,11 +605,85 @@ $totalAmount = $subtotal + $taxAmount;
             document.getElementById('logoutModal').classList.add('hidden');
         }
 
+        function showBillModal() {
+            document.getElementById('billModal').classList.remove('hidden');
+        }
+        
+        function hideBillModal() {
+            document.getElementById('billModal').classList.add('hidden');
+        }
+
+        function printBill() {
+            window.print();
+        }
+
+        function showCouponModal() {
+            document.getElementById('couponModal').classList.remove('hidden');
+        }
+        
+        function hideCouponModal() {
+            document.getElementById('couponModal').classList.add('hidden');
+        }
+
+        function applyCoupon() {
+            // Placeholder for coupon application logic
+            alert('Coupon functionality coming soon!');
+            hideCouponModal();
+        }
+
+        function showPaymentModal() {
+            document.getElementById('paymentModal').classList.remove('hidden');
+        }
+        
+        function hidePaymentModal() {
+            document.getElementById('paymentModal').classList.add('hidden');
+        }
+
+        function processPayment() {
+            // Placeholder for payment processing logic
+            alert('Payment processing coming soon!');
+            hidePaymentModal();
+        }
+
+        function setOrderType(type) {
+            const dineInBtn = document.getElementById('dineInBtn');
+            const takeAwayBtn = document.getElementById('takeAwayBtn');
+            
+            if (type === 'dinein') {
+                dineInBtn.className = 'px-3 py-1.5 rounded-md bg-white text-brand-black font-bold shadow-sm border border-gray-300 transition-all';
+                takeAwayBtn.className = 'px-3 py-1.5 rounded-md text-gray-500 hover:text-brand-black font-semibold transition-all';
+            } else {
+                dineInBtn.className = 'px-3 py-1.5 rounded-md text-gray-500 hover:text-brand-black font-semibold transition-all';
+                takeAwayBtn.className = 'px-3 py-1.5 rounded-md bg-white text-brand-black font-bold shadow-sm border border-gray-300 transition-all';
+            }
+        }
+
         // Sidebar toggle functionality
         const sidebar = document.getElementById('sidebar');
         const sidebarToggle = document.getElementById('sidebarToggle');
         const navTexts = document.querySelectorAll('.nav-text');
-        let isCollapsed = false;
+        let isCollapsed = true;
+
+        // Apply collapsed state by default
+        sidebarToggle.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+        navTexts.forEach(text => {
+            text.classList.add('hidden');
+        });
+        const navItems = document.querySelectorAll('#navigation a');
+        navItems.forEach(item => {
+            item.classList.add('justify-center');
+            item.classList.remove('gap-4');
+        });
+        const logoText = sidebar.querySelector('h1');
+        const logoSubtext = sidebar.querySelector('span.text-gray-500');
+        const logoDivider = sidebar.querySelectorAll('.h-px');
+        const logoSince = sidebar.querySelector('span.text-gray-400');
+        if (logoText) logoText.classList.add('hidden');
+        if (logoSubtext) logoSubtext.classList.add('hidden');
+        if (logoSince) logoSince.classList.add('hidden');
+        logoDivider.forEach(div => div.classList.add('hidden'));
+        const userName = sidebar.querySelector('.text-sm.font-medium');
+        if (userName) userName.classList.add('hidden');
 
         sidebarToggle.addEventListener('click', () => {
             isCollapsed = !isCollapsed;
