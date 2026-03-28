@@ -283,6 +283,10 @@ $totalItems = array_sum($categoryCounts);
                         <h3 class="font-serif text-2xl font-bold text-brand-black"><?php echo htmlspecialchars($categoryName); ?> <span class="text-gray-400 text-lg font-sans ml-1">(<?php echo count($menuItems); ?>)</span></h3>
                         
                         <div class="flex items-center gap-3">
+                            <!-- Manage Categories Button -->
+                            <button onclick="showManageCategoriesModal()" class="bg-brand text-brand-black border border-brand-black shadow-sm px-4 py-2 rounded-lg text-sm font-bold hover:bg-brand-black hover:text-brand transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-layer-group"></i> Manage Categories
+                            </button>
                             <!-- View Toggles -->
                             <div class="flex bg-white border border-gray-200 rounded-lg p-1 shadow-sm">
                                 <button class="w-8 h-8 rounded text-brand border border-brand bg-brand-light flex items-center justify-center"><i class="fa-solid fa-border-all"></i></button>
@@ -461,6 +465,78 @@ $totalItems = array_sum($categoryCounts);
         </div>
     </div>
 
+    <!-- Manage Categories Modal -->
+    <div id="manageCategoriesModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-hidden shadow-2xl border border-gray-200">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-serif font-bold text-brand-black">Manage Categories</h3>
+                <button onclick="hideManageCategoriesModal()" class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 flex items-center justify-center">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Add New Category Form -->
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <h4 class="font-bold text-brand-black mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-plus-circle text-brand"></i> Add New Category
+                    </h4>
+                    <form onsubmit="addCategory(event)">
+                        <div class="space-y-3">
+                            <div>
+                                <label class="text-sm font-medium text-gray-700 mb-1 block">Category Name</label>
+                                <input type="text" id="newCategoryName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent" placeholder="e.g., Coffee, Desserts">
+                            </div>
+                            <div>
+                                <label class="text-sm font-medium text-gray-700 mb-1 block">Icon Class</label>
+                                <select id="newCategoryIcon" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand focus:border-transparent">
+                                    <option value="fa-solid fa-mug-saucer">☕ Coffee</option>
+                                    <option value="fa-solid fa-glass-water">💧 Cold Drinks</option>
+                                    <option value="fa-solid fa-blender">🥤 Blended</option>
+                                    <option value="fa-solid fa-fire">🔥 Hot Drinks</option>
+                                    <option value="fa-solid fa-leaf">🍃 Milk Tea</option>
+                                    <option value="fa-solid fa-cookie">🍪 Food/Pastries</option>
+                                    <option value="fa-solid fa-cake-slice">🍰 Desserts</option>
+                                    <option value="fa-solid fa-burger">🍔 Meals</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full bg-brand text-brand-black font-bold py-2 rounded-lg hover:bg-brand-black hover:text-brand transition-colors">
+                                <i class="fa-solid fa-plus mr-1"></i> Add Category
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Existing Categories List -->
+                <div class="bg-gray-50 rounded-xl p-4">
+                    <h4 class="font-bold text-brand-black mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-list text-brand"></i> Existing Categories
+                    </h4>
+                    <div class="space-y-2 max-h-60 overflow-y-auto">
+                        <?php foreach ($categories as $category): ?>
+                        <div class="bg-white border border-gray-200 rounded-lg p-3 flex items-center justify-between group">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 bg-brand text-brand-black rounded-lg flex items-center justify-center text-sm">
+                                    <i class="<?php echo htmlspecialchars($category['icon']); ?>"></i>
+                                </div>
+                                <span class="font-medium text-brand-black"><?php echo htmlspecialchars($category['name']); ?></span>
+                            </div>
+                            <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick="editCategory(<?php echo $category['id']; ?>, '<?php echo htmlspecialchars($category['name']); ?>', '<?php echo htmlspecialchars($category['icon']); ?>')" class="text-gray-400 hover:text-brand-black">
+                                    <i class="fa-solid fa-pen text-sm"></i>
+                                </button>
+                                <button onclick="deleteCategory(<?php echo $category['id']; ?>)" class="text-gray-400 hover:text-red-500">
+                                    <i class="fa-solid fa-trash text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         function selectCategory(categoryId) {
             window.location.href = 'items.php?category=' + categoryId;
@@ -502,6 +578,102 @@ $totalItems = array_sum($categoryCounts);
                 form.appendChild(itemIdInput);
                 document.body.appendChild(form);
                 form.submit();
+            }
+        }
+
+        function showManageCategoriesModal() {
+            document.getElementById('manageCategoriesModal').classList.remove('hidden');
+        }
+
+        function hideManageCategoriesModal() {
+            document.getElementById('manageCategoriesModal').classList.add('hidden');
+        }
+
+        function addCategory(event) {
+            event.preventDefault();
+            const name = document.getElementById('newCategoryName').value;
+            const icon = document.getElementById('newCategoryIcon').value;
+            
+            fetch('api.php?action=add_category', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    name: name,
+                    icon: icon
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Category "' + name + '" added successfully!');
+                    hideManageCategoriesModal();
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while adding the category');
+            });
+        }
+
+        function editCategory(id, name, icon) {
+            const newName = prompt('Edit category name:', name);
+            if (newName && newName !== name) {
+                fetch('api.php?action=update_category', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: id,
+                        name: newName,
+                        icon: icon
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Category updated successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating the category');
+                });
+            }
+        }
+
+        function deleteCategory(id) {
+            if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+                fetch('api.php?action=delete_category', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        id: id
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Category deleted successfully!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while deleting the category');
+                });
             }
         }
 

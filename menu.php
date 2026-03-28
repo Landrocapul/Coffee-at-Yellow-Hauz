@@ -242,7 +242,7 @@ $totalAmount = $subtotal + $taxAmount;
                 </div>
 
                 <!-- Product Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 mt-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-4">
                     <?php foreach ($menuItems as $item): ?>
                     <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-200 flex flex-col hover:shadow-md transition-all group cursor-pointer hover:border-brand" onclick="addToCart(<?php echo $item['id']; ?>)">
                         <div class="relative w-full h-[160px] rounded-xl overflow-hidden mb-3 bg-gray-100 border border-gray-100">

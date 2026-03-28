@@ -244,6 +244,77 @@ try {
             }
             break;
 
+        case 'add_category':
+            if ($method === 'POST') {
+                $input = json_decode(file_get_contents('php://input'), true);
+                $name = sanitize($input['name']);
+                $icon = sanitize($input['icon']);
+                
+                // Check if category name already exists
+                $stmt = $pdo->prepare("SELECT id FROM categories WHERE name = ? AND status = 'active'");
+                $stmt->execute([$name]);
+                if ($stmt->fetch()) {
+                    echo json_encode(['success' => false, 'error' => 'Category name already exists']);
+                    exit;
+                }
+                
+                // Get the highest sort_order
+                $stmt = $pdo->query("SELECT MAX(sort_order) as max_sort FROM categories WHERE status = 'active'");
+                $maxSort = $stmt->fetch()['max_sort'] ?? 0;
+                
+                $stmt = $pdo->prepare("INSERT INTO categories (name, icon, sort_order) VALUES (?, ?, ?)");
+                $stmt->execute([$name, $icon, $maxSort + 1]);
+                
+                $categoryId = $pdo->lastInsertId();
+                echo json_encode(['success' => true, 'data' => ['id' => $categoryId, 'name' => $name, 'icon' => $icon]]);
+            }
+            break;
+
+        case 'update_category':
+            if ($method === 'POST') {
+                $input = json_decode(file_get_contents('php://input'), true);
+                $categoryId = (int)$input['id'];
+                $name = sanitize($input['name']);
+                $icon = sanitize($input['icon']);
+                
+                // Check if category name already exists (excluding current category)
+                $stmt = $pdo->prepare("SELECT id FROM categories WHERE name = ? AND id != ? AND status = 'active'");
+                $stmt->execute([$name, $categoryId]);
+                if ($stmt->fetch()) {
+                    echo json_encode(['success' => false, 'error' => 'Category name already exists']);
+                    exit;
+                }
+                
+                $stmt = $pdo->prepare("UPDATE categories SET name = ?, icon = ? WHERE id = ?");
+                $stmt->execute([$name, $icon, $categoryId]);
+                
+                echo json_encode(['success' => true, 'data' => ['id' => $categoryId, 'name' => $name, 'icon' => $icon]]);
+            }
+            break;
+
+        case 'delete_category':
+            if ($method === 'POST') {
+                $input = json_decode(file_get_contents('php://input'), true);
+                $categoryId = (int)$input['id'];
+                
+                // Check if category has menu items
+                $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM menu_items WHERE category_id = ? AND is_available = 1");
+                $stmt->execute([$categoryId]);
+                $itemCount = $stmt->fetch()['count'];
+                
+                if ($itemCount > 0) {
+                    echo json_encode(['success' => false, 'error' => 'Cannot delete category with existing menu items']);
+                    exit;
+                }
+                
+                // Soft delete by setting status to inactive
+                $stmt = $pdo->prepare("UPDATE categories SET status = 'inactive' WHERE id = ?");
+                $stmt->execute([$categoryId]);
+                
+                echo json_encode(['success' => true]);
+            }
+            break;
+
         default:
             echo json_encode(['success' => false, 'error' => 'Invalid action']);
             break;
