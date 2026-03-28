@@ -145,9 +145,9 @@ $totalItems = array_sum($categoryCounts);
         .custom-checkbox { accent-color: #171717; cursor: pointer; }
     </style>
 </head>
-<body class="bg-[#EAE8E3] h-screen w-screen p-4 md:p-6 flex items-center justify-center font-sans text-brand-black overflow-hidden">
+<body class="bg-[#EAE8E3] h-screen w-screen p-3 font-sans text-brand-black overflow-hidden">
 
-    <div class="bg-vintage-paper w-full max-w-[1440px] h-full rounded-[32px] shadow-2xl flex overflow-hidden border border-gray-300 relative">
+    <div class="bg-vintage-paper w-full h-full rounded-2xl shadow-2xl flex overflow-hidden border border-gray-300 relative">
         
         <!-- LEFT SIDEBAR -->
         <aside id="sidebar" class="w-[80px] bg-white border-r border-vintage-border flex flex-col justify-between py-6 px-4 shrink-0 z-20 relative transition-all duration-300 ease-in-out">

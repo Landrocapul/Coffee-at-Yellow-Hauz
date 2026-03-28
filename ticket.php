@@ -73,9 +73,9 @@ $completedTickets = $stmt->fetchAll();
         ::-webkit-scrollbar-thumb:hover { background: #A3A3A3; }
     </style>
 </head>
-<body class="bg-[#EAE8E3] h-screen w-screen p-4 md:p-6 flex items-center justify-center font-sans text-brand-black overflow-hidden">
+<body class="bg-[#EAE8E3] h-screen w-screen p-3 font-sans text-brand-black overflow-hidden">
 
-    <div class="bg-vintage-paper w-full max-w-[1440px] h-full rounded-[32px] shadow-2xl flex overflow-hidden border border-gray-300 relative">
+    <div class="bg-vintage-paper w-full h-full rounded-2xl shadow-2xl flex overflow-hidden border border-gray-300 relative">
         
         <!-- LEFT SIDEBAR -->
         <aside id="sidebar" class="w-[80px] bg-white border-r border-vintage-border flex flex-col justify-between py-6 px-4 shrink-0 z-10 transition-all duration-300 ease-in-out">

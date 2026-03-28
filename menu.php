@@ -150,9 +150,9 @@ $totalAmount = $subtotal + $taxAmount;
         ::-webkit-scrollbar-thumb:hover { background: #A3A3A3; }
     </style>
 </head>
-<body class="bg-[#EAE8E3] h-screen w-screen p-4 md:p-6 flex items-center justify-center font-sans text-brand-black overflow-hidden">
+<body class="bg-[#EAE8E3] h-screen w-screen p-3 font-sans text-brand-black overflow-hidden">
 
-    <div class="bg-vintage-paper w-full max-w-[1440px] h-full rounded-[32px] shadow-2xl flex overflow-hidden border border-gray-300">
+    <div class="bg-vintage-paper w-full h-full rounded-2xl shadow-2xl flex overflow-hidden border border-gray-300">
         
         
         <aside id="sidebar" class="w-[80px] bg-white border-r border-vintage-border flex flex-col justify-between py-6 px-4 shrink-0 z-10 transition-all duration-300 ease-in-out">
@@ -244,7 +244,7 @@ $totalAmount = $subtotal + $taxAmount;
                 <!-- Product Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 mt-4">
                     <?php foreach ($menuItems as $item): ?>
-                    <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-200 flex flex-col hover:shadow-md transition-all group">
+                    <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-200 flex flex-col hover:shadow-md transition-all group cursor-pointer hover:border-brand" onclick="addToCart(<?php echo $item['id']; ?>)">
                         <div class="relative w-full h-[160px] rounded-xl overflow-hidden mb-3 bg-gray-100 border border-gray-100">
                             <?php if ($item['is_best_seller']): ?>
                             <span class="absolute top-2 left-2 bg-brand text-brand-black text-[10px] font-bold px-2 py-1 rounded-md z-10 uppercase tracking-wide border border-brand-black">Best Seller</span>
@@ -258,7 +258,6 @@ $totalAmount = $subtotal + $taxAmount;
                                 <?php echo strtoupper($item['temperature']); ?>
                             </div>
                         </div>
-                        <button class="w-full mt-3 bg-gray-100 text-brand-black font-semibold py-2.5 rounded-xl text-sm hover:bg-brand hover:text-brand-black transition-colors border border-transparent hover:border-brand-black" onclick="addToCart(<?php echo $item['id']; ?>)">Add to Order</button>
                     </div>
                     <?php endforeach; ?>
                 </div>
