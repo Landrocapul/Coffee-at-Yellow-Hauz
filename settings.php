@@ -6,7 +6,7 @@ if (!isLoggedIn()) {
     redirect('index.php');
 }
 
-// Only admins can access settings
+// Check if user has admin access
 if (!isAdmin()) {
     redirect('menu.php');
 }

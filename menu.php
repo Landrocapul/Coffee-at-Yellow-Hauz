@@ -63,35 +63,94 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         $itemId = (int)$_POST['item_id'];
         $quantity = (int)$_POST['quantity'];
         
-        if (isset($_SESSION['cart'][$itemId])) {
-            $_SESSION['cart'][$itemId]['quantity'] += $quantity;
-        } else {
-            $stmt = $pdo->prepare("SELECT id, name, price, image_url FROM menu_items WHERE id = ?");
-            $stmt->execute([$itemId]);
-            $item = $stmt->fetch();
-            if ($item) {
-                $_SESSION['cart'][$itemId] = [
-                    'id' => $item['id'],
-                    'name' => $item['name'],
-                    'price' => $item['price'],
-                    'image_url' => $item['image_url'],
-                    'quantity' => $quantity
-                ];
+        // Get current stock
+        $stmt = $pdo->prepare("SELECT id, name, price, image_url, quantity FROM menu_items WHERE id = ?");
+        $stmt->execute([$itemId]);
+        $item = $stmt->fetch();
+        
+        if ($item) {
+            // Check if enough stock available
+            $currentCartQuantity = isset($_SESSION['cart'][$itemId]) ? $_SESSION['cart'][$itemId]['quantity'] : 0;
+            $totalRequestedQuantity = $currentCartQuantity + $quantity;
+            
+            if ($totalRequestedQuantity > $item['quantity']) {
+                // Not enough stock
+                $_SESSION['error'] = "Not enough stock for " . htmlspecialchars($item['name']) . ". Available: " . $item['quantity'] . ", Requested: " . $totalRequestedQuantity;
+            } else {
+                // Enough stock, add to cart and reduce stock
+                if (isset($_SESSION['cart'][$itemId])) {
+                    $_SESSION['cart'][$itemId]['quantity'] += $quantity;
+                } else {
+                    $_SESSION['cart'][$itemId] = [
+                        'id' => $item['id'],
+                        'name' => $item['name'],
+                        'price' => $item['price'],
+                        'image_url' => $item['image_url'],
+                        'quantity' => $quantity
+                    ];
+                }
+                
+                // Reduce stock immediately
+                $stmt = $pdo->prepare("UPDATE menu_items SET quantity = quantity - ? WHERE id = ? AND quantity >= ?");
+                $stmt->execute([$quantity, $itemId, $quantity]);
             }
         }
     } elseif ($action === 'update_quantity') {
         $itemId = (int)$_POST['item_id'];
         $quantity = (int)$_POST['quantity'];
         
-        if ($quantity <= 0) {
-            unset($_SESSION['cart'][$itemId]);
-        } elseif (isset($_SESSION['cart'][$itemId])) {
-            $_SESSION['cart'][$itemId]['quantity'] = $quantity;
+        if (isset($_SESSION['cart'][$itemId])) {
+            $currentCartQuantity = $_SESSION['cart'][$itemId]['quantity'];
+            
+            if ($quantity <= 0) {
+                // Return stock when removing from cart
+                $stmt = $pdo->prepare("UPDATE menu_items SET quantity = quantity + ? WHERE id = ?");
+                $stmt->execute([$currentCartQuantity, $itemId]);
+                unset($_SESSION['cart'][$itemId]);
+            } else {
+                $quantityDiff = $quantity - $currentCartQuantity;
+                
+                if ($quantityDiff > 0) {
+                    // Increasing quantity - check if enough stock available
+                    $stmt = $pdo->prepare("SELECT quantity FROM menu_items WHERE id = ?");
+                    $stmt->execute([$itemId]);
+                    $availableStock = $stmt->fetchColumn();
+                    
+                    if ($quantityDiff > $availableStock) {
+                        $_SESSION['error'] = "Not enough stock. Available: " . $availableStock . ", Requested additional: " . $quantityDiff;
+                    } else {
+                        // Reduce additional stock
+                        $stmt = $pdo->prepare("UPDATE menu_items SET quantity = quantity - ? WHERE id = ?");
+                        $stmt->execute([$quantityDiff, $itemId]);
+                        $_SESSION['cart'][$itemId]['quantity'] = $quantity;
+                    }
+                } else {
+                    // Decreasing quantity - return difference to stock
+                    $stmt = $pdo->prepare("UPDATE menu_items SET quantity = quantity + ? WHERE id = ?");
+                    $stmt->execute([abs($quantityDiff), $itemId]);
+                    $_SESSION['cart'][$itemId]['quantity'] = $quantity;
+                }
+            }
         }
     } elseif ($action === 'remove_from_cart') {
         $itemId = (int)$_POST['item_id'];
-        unset($_SESSION['cart'][$itemId]);
+        
+        // Return stock to inventory
+        if (isset($_SESSION['cart'][$itemId])) {
+            $cartQuantity = $_SESSION['cart'][$itemId]['quantity'];
+            $stmt = $pdo->prepare("UPDATE menu_items SET quantity = quantity + ? WHERE id = ?");
+            $stmt->execute([$cartQuantity, $itemId]);
+            unset($_SESSION['cart'][$itemId]);
+        }
     } elseif ($action === 'clear_cart') {
+        // Return all stock to inventory
+        foreach ($_SESSION['cart'] as $itemId => $item) {
+            $stmt = $pdo->prepare("UPDATE menu_items SET quantity = quantity + ? WHERE id = ?");
+            $stmt->execute([$item['quantity'], $itemId]);
+        }
+        $_SESSION['cart'] = [];
+    } elseif ($action === 'clear_cart_no_return') {
+        // Clear cart without returning stock (for confirmed orders)
         $_SESSION['cart'] = [];
     }
     
@@ -179,6 +238,7 @@ $totalAmount = $subtotal + $taxAmount;
                     <a href="ticket.php" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
                         <i class="fa-solid fa-receipt w-5 text-center"></i> <span class="nav-text">Tickets</span>
                     </a>
+                    <?php if (isAdmin()): ?>
                     <a href="items.php" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
                         <i class="fa-solid fa-clipboard-list w-5 text-center"></i> <span class="nav-text">Manage Food Items</span>
                     </a>
@@ -191,6 +251,7 @@ $totalAmount = $subtotal + $taxAmount;
                     <a href="settings.php" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
                         <i class="fa-solid fa-gear w-5 text-center"></i> <span class="nav-text">Settings</span>
                     </a>
+                    <?php endif; ?>
                 </nav>
             </div>
 
@@ -229,20 +290,20 @@ $totalAmount = $subtotal + $taxAmount;
                 </button>
             </header>
 
-            <div class="flex-1 overflow-y-auto px-8 pb-32 pt-6">
-                <!-- Categories -->
-                <div class="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
+            <div class="flex-1 overflow-y-auto px-8 pb-32 pt-6 flex gap-6">
+                <!-- Categories Sidebar -->
+                <div class="flex flex-col gap-3 shrink-0">
                     <?php foreach ($categories as $category): ?>
-                    <div class="min-w-[100px] h-[120px] <?php echo $category['id'] == $selectedCategoryId ? 'bg-brand text-brand-black' : 'bg-white'; ?> rounded-2xl flex flex-col items-center justify-center cursor-pointer shadow-sm border <?php echo $category['id'] == $selectedCategoryId ? 'border-brand/30' : 'border-gray-200 hover:border-brand'; ?> transition-all" onclick="selectCategory(<?php echo $category['id']; ?>)">
-                        <div class="w-10 h-10 mb-2 flex items-center justify-center text-xl"><i class="<?php echo htmlspecialchars($category['icon']); ?>"></i></div>
-                        <span class="font-bold text-sm"><?php echo htmlspecialchars($category['name']); ?></span>
-                        <span class="text-xs <?php echo $category['id'] == $selectedCategoryId ? 'text-brand-black/70' : 'text-gray-400'; ?> mt-1"><?php echo $categoryCounts[$category['id']] ?? 0; ?> Items</span>
+                    <div class="w-[100px] h-[100px] <?php echo $category['id'] == $selectedCategoryId ? 'bg-brand text-brand-black' : 'bg-white'; ?> rounded-2xl flex flex-col items-center justify-center cursor-pointer shadow-sm border <?php echo $category['id'] == $selectedCategoryId ? 'border-brand/30' : 'border-gray-200 hover:border-brand'; ?> transition-all" onclick="selectCategory(<?php echo $category['id']; ?>)">
+                        <div class="w-10 h-10 mb-1 flex items-center justify-center text-xl"><i class="<?php echo htmlspecialchars($category['icon']); ?>"></i></div>
+                        <span class="font-bold text-xs text-center leading-tight"><?php echo htmlspecialchars($category['name']); ?></span>
+                        <span class="text-[10px] <?php echo $category['id'] == $selectedCategoryId ? 'text-brand-black/70' : 'text-gray-400'; ?> mt-0.5"><?php echo $categoryCounts[$category['id']] ?? 0; ?></span>
                     </div>
                     <?php endforeach; ?>
                 </div>
 
                 <!-- Product Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-4">
+                <div class="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     <?php foreach ($menuItems as $item): ?>
                     <div class="bg-white p-3 rounded-2xl shadow-sm border border-gray-200 flex flex-col hover:shadow-md transition-all group cursor-pointer hover:border-brand" onclick="addToCart(<?php echo $item['id']; ?>)">
                         <div class="relative w-full h-[160px] rounded-xl overflow-hidden mb-3 bg-gray-100 border border-gray-100">
@@ -253,7 +314,10 @@ $totalAmount = $subtotal + $taxAmount;
                         </div>
                         <h3 class="font-bold text-sm leading-tight mb-1 font-serif text-lg"><?php echo htmlspecialchars($item['name']); ?></h3>
                         <div class="flex justify-between items-end mt-auto pt-2">
-                            <span class="font-bold text-brand-black"><?php echo formatCurrency($item['price']); ?></span>
+                            <div class="flex flex-col">
+                                <span class="font-bold text-brand-black"><?php echo formatCurrency($item['price']); ?></span>
+                                <span class="text-xs text-gray-500">Qty: <?php echo $item['quantity'] ?? 0; ?></span>
+                            </div>
                             <div class="flex items-center gap-1 text-[10px] text-gray-600 font-bold tracking-wider uppercase border border-gray-200 px-2 py-0.5 rounded bg-gray-50">
                                 <?php echo strtoupper($item['temperature']); ?>
                             </div>
@@ -296,10 +360,12 @@ $totalAmount = $subtotal + $taxAmount;
                         <!-- Order Type Switch -->
                         <div class="bg-gray-100 p-1 rounded-lg flex items-center text-sm font-semibold border border-gray-200">
                             <button id="dineInBtn" onclick="setOrderType('dinein')" class="px-3 py-1.5 rounded-md bg-white text-brand-black font-bold shadow-sm border border-gray-300 transition-all">
-                                <i class="fa-solid fa-utensils"></i>
+                                <i class="fa-solid fa-utensils mr-1"></i>
+                                Dine In
                             </button>
                             <button id="takeAwayBtn" onclick="setOrderType('takeaway')" class="px-3 py-1.5 rounded-md text-gray-500 hover:text-brand-black font-semibold transition-all">
-                                <i class="fa-solid fa-bag-shopping"></i>
+                                <i class="fa-solid fa-bag-shopping mr-1"></i>
+                                Take Out
                             </button>
                         </div>
                         <button class="w-8 h-8 rounded-full bg-gray-100 text-brand-black hover:bg-brand hover:text-brand-black transition-colors flex items-center justify-center border border-transparent hover:border-brand-black">
@@ -310,6 +376,15 @@ $totalAmount = $subtotal + $taxAmount;
             </div>
 
             <div class="flex-1 overflow-y-auto p-4 space-y-3">
+                <?php if (isset($_SESSION['error'])): ?>
+                <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl mb-4">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-exclamation-triangle"></i>
+                        <span class="font-medium"><?php echo htmlspecialchars($_SESSION['error']); ?></span>
+                    </div>
+                </div>
+                <?php unset($_SESSION['error']); ?>
+                <?php else: ?>
                 <?php if (empty($_SESSION['cart'])): ?>
                 <div class="text-center py-8 text-gray-400">
                     <i class="fa-solid fa-cart-shopping text-4xl mb-3"></i>
@@ -323,7 +398,15 @@ $totalAmount = $subtotal + $taxAmount;
                         <h4 class="text-sm font-serif font-bold leading-tight"><?php echo htmlspecialchars($item['name']); ?></h4>
                         <div class="flex justify-between items-center mt-1">
                             <span class="text-gray-500 text-xs"><?php echo formatCurrency($item['price']); ?></span>
-                            <span class="text-xs font-bold px-2 py-0.5 bg-gray-100 rounded border border-gray-200"><?php echo $item['quantity']; ?>X</span>
+                            <div class="flex items-center gap-1">
+                                <button onclick="updateQuantity(<?php echo $item['id']; ?>, <?php echo $item['quantity']; ?> - 1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 flex items-center justify-center transition-colors">
+                                    <i class="fa-solid fa-minus text-xs"></i>
+                                </button>
+                                <span class="text-xs font-bold px-2 py-0.5 bg-gray-100 rounded border border-gray-200 min-w-[30px] text-center"><?php echo $item['quantity']; ?></span>
+                                <button onclick="updateQuantity(<?php echo $item['id']; ?>, <?php echo $item['quantity']; ?> + 1)" class="w-6 h-6 rounded bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 flex items-center justify-center transition-colors">
+                                    <i class="fa-solid fa-plus text-xs"></i>
+                                </button>
+                            </div>
                             <span class="font-bold text-sm"><?php echo formatCurrency($item['price'] * $item['quantity']); ?></span>
                         </div>
                     </div>
@@ -332,6 +415,7 @@ $totalAmount = $subtotal + $taxAmount;
                     </button>
                 </div>
                 <?php endforeach; ?>
+                <?php endif; ?>
                 <?php endif; ?>
             </div>
 
@@ -544,6 +628,17 @@ $totalAmount = $subtotal + $taxAmount;
     </div>
 
     <script>
+        // Initialize JavaScript variables
+        let cart = <?php echo json_encode(array_values($_SESSION['cart'] ?? [])); ?>;
+        let selectedTableId = null;
+        let selectedCustomerName = null;
+        let orderType = 'dine_in';
+
+        // Initialize order type buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            setOrderType('dinein');
+        });
+
         function selectCategory(categoryId) {
             window.location.href = 'menu.php?category=' + categoryId;
         }
@@ -567,6 +662,53 @@ $totalAmount = $subtotal + $taxAmount;
             quantityInput.type = 'hidden';
             quantityInput.name = 'quantity';
             quantityInput.value = 1;
+            
+            form.appendChild(actionInput);
+            form.appendChild(itemIdInput);
+            form.appendChild(quantityInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function clearCartNoReturn() {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'menu.php?category=<?php echo $selectedCategoryId; ?>';
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'clear_cart_no_return';
+            
+            form.appendChild(actionInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function updateQuantity(itemId, newQuantity) {
+            if (newQuantity < 1) {
+                removeFromCart(itemId);
+                return;
+            }
+            
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = 'menu.php?category=<?php echo $selectedCategoryId; ?>';
+            
+            const actionInput = document.createElement('input');
+            actionInput.type = 'hidden';
+            actionInput.name = 'action';
+            actionInput.value = 'update_quantity';
+            
+            const itemIdInput = document.createElement('input');
+            itemIdInput.type = 'hidden';
+            itemIdInput.name = 'item_id';
+            itemIdInput.value = itemId;
+            
+            const quantityInput = document.createElement('input');
+            quantityInput.type = 'hidden';
+            quantityInput.name = 'quantity';
+            quantityInput.value = newQuantity;
             
             form.appendChild(actionInput);
             form.appendChild(itemIdInput);
@@ -613,7 +755,149 @@ $totalAmount = $subtotal + $taxAmount;
         }
 
         function printBill() {
+            // First record the sale in sales report and ticket system
+            recordSaleAndShowPrintConfirmation();
+        }
+
+        function recordSaleAndShowPrintConfirmation() {
+            if (cart.length === 0) {
+                showNotification('Cart is empty', 'error');
+                return;
+            }
+
+            const orderData = {
+                cart: cart,
+                table_id: selectedTableId || null,
+                customer_name: selectedCustomerName || 'Guest',
+                order_type: orderType || 'dine_in',
+                payment_method: 'cash' // Default payment method
+            };
+
+            fetch('api.php?action=create_order', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(orderData)
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                return response.text();
+            })
+            .then(text => {
+                console.log('Raw response:', text);
+                try {
+                    const data = JSON.parse(text);
+                    if (data.success) {
+                        // Sale recorded successfully, show print confirmation
+                        showPrintConfirmation(data.order_id, data.order_number);
+                    } else {
+                        showNotification('Failed to record sale: ' + data.error, 'error');
+                    }
+                } catch (e) {
+                    console.error('JSON parse error:', e);
+                    showNotification('Invalid response from server', 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                showNotification('Error recording sale', 'error');
+            });
+        }
+
+        function showPrintConfirmation(orderId, orderNumber) {
+            // Create confirmation modal
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-200">
+                    <div class="flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mx-auto mb-4">
+                        <i class="fa-solid fa-check text-green-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-serif font-bold text-brand-black text-center mb-2">Sale Recorded!</h3>
+                    <p class="text-gray-600 text-center mb-2">Order #${orderNumber} has been saved to sales report and ticket system.</p>
+                    <p class="text-sm text-gray-500 text-center mb-6">Would you like to print the receipt now?</p>
+                    
+                    <div class="flex gap-3">
+                        <button onclick="closePrintConfirmation('${modal.id}')" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors">
+                            Skip
+                        </button>
+                        <button onclick="confirmPrint('${modal.id}')" class="flex-1 bg-brand-black text-brand py-3 rounded-xl font-bold hover:bg-gray-800 transition-colors">
+                            <i class="fa-solid fa-print mr-2"></i> Print
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            modal.id = 'printConfirmationModal';
+            document.body.appendChild(modal);
+        }
+
+        function closePrintConfirmation(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.remove();
+            }
+            // Clear cart without returning stock and close bill modal after recording sale
+            cart = [];
+            selectedTableId = null;
+            selectedCustomerName = null;
+            clearCartNoReturn();
+            hideBillModal();
+        }
+
+        function confirmPrint(modalId) {
+            // Remove the confirmation modal
+            closePrintConfirmation(modalId);
+            
+            // Show print preview
             window.print();
+        }
+
+        function updateCart() {
+            // Reload the page to sync cart with server
+            window.location.reload();
+        }
+
+        function showNotification(message, type = 'success') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 p-4 rounded-xl shadow-lg border transform transition-all duration-300 translate-x-full`;
+            
+            // Set colors based on type
+            if (type === 'error') {
+                notification.className += ' bg-red-50 border-red-200 text-red-700';
+            } else if (type === 'warning') {
+                notification.className += ' bg-yellow-50 border-yellow-200 text-yellow-700';
+            } else {
+                notification.className += ' bg-green-50 border-green-200 text-green-700';
+            }
+            
+            notification.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid ${type === 'error' ? 'fa-exclamation-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i>
+                    <span class="font-medium">${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Slide in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+                notification.classList.add('translate-x-0');
+            }, 100);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
         }
 
         function showCouponModal() {
@@ -651,9 +935,11 @@ $totalAmount = $subtotal + $taxAmount;
             if (type === 'dinein') {
                 dineInBtn.className = 'px-3 py-1.5 rounded-md bg-white text-brand-black font-bold shadow-sm border border-gray-300 transition-all';
                 takeAwayBtn.className = 'px-3 py-1.5 rounded-md text-gray-500 hover:text-brand-black font-semibold transition-all';
+                orderType = 'dine_in';
             } else {
                 dineInBtn.className = 'px-3 py-1.5 rounded-md text-gray-500 hover:text-brand-black font-semibold transition-all';
                 takeAwayBtn.className = 'px-3 py-1.5 rounded-md bg-white text-brand-black font-bold shadow-sm border border-gray-300 transition-all';
+                orderType = 'take_away';
             }
         }
 

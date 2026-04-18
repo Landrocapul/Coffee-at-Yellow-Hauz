@@ -6,6 +6,11 @@ if (!isLoggedIn()) {
     redirect('index.php');
 }
 
+// Check if user has admin access
+if (!isAdmin()) {
+    redirect('menu.php');
+}
+
 // Get current user info
 $currentUser = getCurrentUser();
 
@@ -51,7 +56,7 @@ $categoryAnalytics = $stmt->fetchAll();
 
 // Calculate totals
 $totalRevenue = array_sum(array_column($productAnalytics, 'total_revenue'));
-totalUnitsSold = array_sum(array_column($productAnalytics, 'total_sold'));
+$totalUnitsSold = array_sum(array_column($productAnalytics, 'total_sold'));
 ?>
 <!DOCTYPE html>
 <html lang="en">

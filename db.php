@@ -83,4 +83,20 @@ function updateSetting($key, $value) {
     $stmt = $pdo->prepare("INSERT INTO settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?");
     return $stmt->execute([$key, $value, $value]);
 }
+
+// Helper function to check if user is cashier
+function isCashier() {
+    $currentUser = getCurrentUser();
+    return $currentUser && $currentUser['role'] === 'cashier';
+}
+
+// Helper function to check if user has access to admin features
+function hasAdminAccess() {
+    return isAdmin();
+}
+
+// Helper function to check if user has access to cashier features
+function hasCashierAccess() {
+    return isAdmin() || isCashier();
+}
 ?>

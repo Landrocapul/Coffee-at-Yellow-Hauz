@@ -6,6 +6,11 @@ if (!isLoggedIn()) {
     redirect('index.php');
 }
 
+// Check if user has cashier access (both cashier and admin can access table services)
+if (!hasCashierAccess()) {
+    redirect('menu.php');
+}
+
 // Get current user info
 $currentUser = getCurrentUser();
 
@@ -120,6 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     <a href="ticket.php" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
                         <i class="fa-solid fa-receipt w-5 text-center"></i> <span class="nav-text">Tickets</span>
                     </a>
+                    <?php if (isAdmin()): ?>
                     <a href="items.php" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
                         <i class="fa-solid fa-clipboard-list w-5 text-center"></i> <span class="nav-text">Manage Food Items</span>
                     </a>
@@ -132,6 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     <a href="settings.php" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
                         <i class="fa-solid fa-gear w-5 text-center"></i> <span class="nav-text">Settings</span>
                     </a>
+                    <?php endif; ?>
                 </nav>
             </div>
 

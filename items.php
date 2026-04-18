@@ -6,6 +6,11 @@ if (!isLoggedIn()) {
     redirect('index.php');
 }
 
+// Check if user has admin access
+if (!isAdmin()) {
+    redirect('menu.php');
+}
+
 // Get current user info
 $currentUser = getCurrentUser();
 
@@ -331,6 +336,7 @@ $totalItems = array_sum($categoryCounts);
                                     <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5"><?php echo htmlspecialchars($item['category_name']); ?></span>
                                     <h4 class="font-serif font-bold text-brand-black text-sm leading-tight line-clamp-1"><?php echo htmlspecialchars($item['name']); ?></h4>
                                     <span class="font-bold text-brand-black mt-1"><?php echo formatCurrency($item['price']); ?></span>
+                                    <span class="text-xs text-gray-500 mt-0.5">Qty: <?php echo $item['quantity'] ?? 0; ?></span>
                                 </div>
                             </div>
                             <?php endforeach; ?>
@@ -368,6 +374,11 @@ $totalItems = array_sum($categoryCounts);
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Price</label>
                     <input type="number" step="0.01" name="price" required class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Quantity</label>
+                    <input type="number" name="quantity" min="0" value="0" class="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
                 </div>
                 
                 <div>
@@ -537,6 +548,20 @@ $totalItems = array_sum($categoryCounts);
         </div>
     </div>
 
+    <!-- Notification Modal -->
+    <div id="notificationModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-200">
+            <div class="flex items-center justify-center w-16 h-16 rounded-full mx-auto mb-4" id="notificationIcon">
+                <i class="fa-solid fa-check text-2xl" id="notificationIconClass"></i>
+            </div>
+            <h3 class="text-xl font-serif font-bold text-center mb-2" id="notificationTitle">Success</h3>
+            <p class="text-gray-600 text-center mb-6" id="notificationMessage">Operation completed successfully</p>
+            <button onclick="hideNotificationModal()" class="w-full bg-brand text-brand-black font-bold py-3 rounded-xl hover:bg-brand-black hover:text-brand transition-colors">
+                OK
+            </button>
+        </div>
+    </div>
+
     <script>
         function selectCategory(categoryId) {
             window.location.href = 'items.php?category=' + categoryId;
@@ -589,6 +614,31 @@ $totalItems = array_sum($categoryCounts);
             document.getElementById('manageCategoriesModal').classList.add('hidden');
         }
 
+        function showNotificationModal(title, message, isSuccess = true) {
+            const modal = document.getElementById('notificationModal');
+            const icon = document.getElementById('notificationIcon');
+            const iconClass = document.getElementById('notificationIconClass');
+            const titleElement = document.getElementById('notificationTitle');
+            const messageElement = document.getElementById('notificationMessage');
+
+            titleElement.textContent = title;
+            messageElement.textContent = message;
+
+            if (isSuccess) {
+                icon.className = 'flex items-center justify-center w-16 h-16 rounded-full mx-auto mb-4 bg-green-100';
+                iconClass.className = 'fa-solid fa-check text-2xl text-green-600';
+            } else {
+                icon.className = 'flex items-center justify-center w-16 h-16 rounded-full mx-auto mb-4 bg-red-100';
+                iconClass.className = 'fa-solid fa-times text-2xl text-red-600';
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function hideNotificationModal() {
+            document.getElementById('notificationModal').classList.add('hidden');
+        }
+
         function addCategory(event) {
             event.preventDefault();
             const name = document.getElementById('newCategoryName').value;
@@ -607,51 +657,127 @@ $totalItems = array_sum($categoryCounts);
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('Category "' + name + '" added successfully!');
+                    showNotificationModal('Success', 'Category "' + name + '" added successfully!', true);
                     hideManageCategoriesModal();
-                    location.reload();
+                    setTimeout(() => location.reload(), 1500);
                 } else {
-                    alert('Error: ' + data.error);
+                    showNotificationModal('Error', data.error, false);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while adding the category');
+                showNotificationModal('Error', 'An error occurred while adding the category', false);
             });
         }
 
         function editCategory(id, name, icon) {
-            const newName = prompt('Edit category name:', name);
-            if (newName && newName !== name) {
+            // Use the existing add category form for editing
+            document.getElementById('newCategoryName').value = name;
+            document.getElementById('newCategoryIcon').value = icon;
+            
+            // Change the form action to update instead of add
+            const form = document.querySelector('#manageCategoriesModal form');
+            form.setAttribute('data-edit-id', id);
+            form.setAttribute('data-original-name', name);
+            form.setAttribute('data-original-icon', icon);
+            
+            // Update the button text
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fa-solid fa-pen mr-1"></i> Update Category';
+            
+            showManageCategoriesModal();
+        }
+
+        function addCategory(event) {
+            event.preventDefault();
+            const form = event.target;
+            const editId = form.getAttribute('data-edit-id');
+            const originalName = form.getAttribute('data-original-name');
+            const originalIcon = form.getAttribute('data-original-icon');
+            
+            const name = document.getElementById('newCategoryName').value;
+            const icon = document.getElementById('newCategoryIcon').value;
+            
+            if (editId) {
+                // Update existing category
                 fetch('api.php?action=update_category', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        id: id,
-                        name: newName,
+                        id: parseInt(editId),
+                        name: name,
                         icon: icon
                     })
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        alert('Category updated successfully!');
-                        location.reload();
+                        showNotificationModal('Success', 'Category updated successfully!', true);
+                        hideManageCategoriesModal();
+                        setTimeout(() => location.reload(), 1500);
                     } else {
-                        alert('Error: ' + data.error);
+                        showNotificationModal('Error', data.error, false);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('An error occurred while updating the category');
+                    showNotificationModal('Error', 'An error occurred while updating the category', false);
+                });
+            } else {
+                // Add new category
+                fetch('api.php?action=add_category', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        icon: icon
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotificationModal('Success', 'Category "' + name + '" added successfully!', true);
+                        hideManageCategoriesModal();
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showNotificationModal('Error', data.error, false);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotificationModal('Error', 'An error occurred while adding the category', false);
                 });
             }
         }
 
         function deleteCategory(id) {
-            if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+            // Create a custom confirmation modal
+            const confirmModal = document.createElement('div');
+            confirmModal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50';
+            confirmModal.innerHTML = `
+                <div class="bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-200">
+                    <div class="flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mx-auto mb-4">
+                        <i class="fa-solid fa-trash text-red-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-serif font-bold text-brand-black text-center mb-2">Delete Category</h3>
+                    <p class="text-gray-600 text-center mb-6">Are you sure you want to delete this category? This action cannot be undone.</p>
+                    <div class="flex gap-3">
+                        <button onclick="this.closest('.fixed').remove()" class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold hover:bg-gray-200 transition-colors">
+                            Cancel
+                        </button>
+                        <button id="confirmDeleteBtn" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700 transition-colors">
+                            Delete
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(confirmModal);
+            
+            document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
                 fetch('api.php?action=delete_category', {
                     method: 'POST',
                     headers: {
@@ -663,18 +789,20 @@ $totalItems = array_sum($categoryCounts);
                 })
                 .then(response => response.json())
                 .then(data => {
+                    confirmModal.remove();
                     if (data.success) {
-                        alert('Category deleted successfully!');
-                        location.reload();
+                        showNotificationModal('Success', 'Category deleted successfully!', true);
+                        setTimeout(() => location.reload(), 1500);
                     } else {
-                        alert('Error: ' + data.error);
+                        showNotificationModal('Error', data.error, false);
                     }
                 })
                 .catch(error => {
+                    confirmModal.remove();
                     console.error('Error:', error);
-                    alert('An error occurred while deleting the category');
+                    showNotificationModal('Error', 'An error occurred while deleting the category', false);
                 });
-            }
+            });
         }
 
         function showLogoutModal() {

@@ -6,6 +6,11 @@ if (!isLoggedIn()) {
     redirect('index.php');
 }
 
+// Check if user has admin access
+if (!isAdmin()) {
+    redirect('menu.php');
+}
+
 // Get current user info
 $currentUser = getCurrentUser();
 

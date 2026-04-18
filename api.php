@@ -10,6 +10,9 @@ if (!isLoggedIn()) {
     exit;
 }
 
+// Get current user
+$currentUser = getCurrentUser();
+
 // Get request method and action
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';
@@ -144,49 +147,51 @@ try {
 
         case 'create_order':
             if ($method === 'POST') {
-                $input = json_decode(file_get_contents('php://input'), true);
-                
-                if (empty($_SESSION['cart'])) {
-                    echo json_encode(['success' => false, 'error' => 'Cart is empty']);
-                    exit;
+                try {
+                    $input = json_decode(file_get_contents('php://input'), true);
+                    
+                    if (empty($input['cart']) || !is_array($input['cart'])) {
+                        echo json_encode(['success' => false, 'error' => 'Cart is empty']);
+                        exit;
+                    }
+                    
+                    $tableId = isset($input['table_id']) ? (int)$input['table_id'] : null;
+                    $customerName = sanitize($input['customer_name'] ?? '');
+                    $orderType = sanitize($input['order_type'] ?? 'dine_in');
+                    $paymentMethod = sanitize($input['payment_method'] ?? 'cash');
+                    
+                    $orderNumber = generateOrderNumber();
+                    $subtotal = 0;
+                    foreach ($input['cart'] as $item) {
+                        $subtotal += $item['price'] * $item['quantity'];
+                    }
+                    
+                    $taxRate = getSetting('tax_rate') ? (float)getSetting('tax_rate') : 12;
+                    $taxAmount = $subtotal * ($taxRate / 100);
+                    $totalAmount = $subtotal + $taxAmount;
+                    
+                    $stmt = $pdo->prepare("INSERT INTO orders (order_number, table_id, customer_name, order_type, payment_method, subtotal, tax_rate, tax_amount, total_amount, cashier_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'completed')");
+                    $stmt->execute([$orderNumber, $tableId, $customerName, $orderType, $paymentMethod, $subtotal, $taxRate, $taxAmount, $totalAmount, $currentUser['id']]);
+                    
+                    $orderId = $pdo->lastInsertId();
+                    
+                    // Insert order items (stock already reduced when added to cart)
+                    foreach ($input['cart'] as $item) {
+                        $totalPrice = $item['price'] * $item['quantity'];
+                        $stmt = $pdo->prepare("INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)");
+                        $stmt->execute([$orderId, $item['id'], $item['quantity'], $item['price'], $totalPrice]);
+                    }
+                    
+                    // Update table status if applicable
+                    if ($tableId) {
+                        $stmt = $pdo->prepare("UPDATE tables SET status = 'available', current_order_id = NULL WHERE id = ?");
+                        $stmt->execute([$tableId]);
+                    }
+                    
+                    echo json_encode(['success' => true, 'order_id' => $orderId, 'order_number' => $orderNumber]);
+                } catch (Exception $e) {
+                    echo json_encode(['success' => false, 'error' => 'Database error: ' . $e->getMessage()]);
                 }
-                
-                $tableId = isset($input['table_id']) ? (int)$input['table_id'] : null;
-                $customerName = sanitize($input['customer_name'] ?? '');
-                $orderType = sanitize($input['order_type'] ?? 'dine_in');
-                $paymentMethod = sanitize($input['payment_method'] ?? 'cash');
-                
-                $orderNumber = generateOrderNumber();
-                $subtotal = 0;
-                foreach ($_SESSION['cart'] as $item) {
-                    $subtotal += $item['price'] * $item['quantity'];
-                }
-                
-                $taxRate = getSetting('tax_rate') ? (float)getSetting('tax_rate') : 12;
-                $taxAmount = $subtotal * ($taxRate / 100);
-                $totalAmount = $subtotal + $taxAmount;
-                
-                $stmt = $pdo->prepare("INSERT INTO orders (order_number, table_id, customer_name, order_type, payment_method, subtotal, tax_rate, tax_amount, total_amount, cashier_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'completed')");
-                $stmt->execute([$orderNumber, $tableId, $customerName, $orderType, $paymentMethod, $subtotal, $taxRate, $taxAmount, $totalAmount, $currentUser['id']]);
-                
-                $orderId = $pdo->lastInsertId();
-                
-                // Insert order items
-                foreach ($_SESSION['cart'] as $item) {
-                    $totalPrice = $item['price'] * $item['quantity'];
-                    $stmt = $pdo->prepare("INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)");
-                    $stmt->execute([$orderId, $item['id'], $item['quantity'], $item['price'], $totalPrice]);
-                }
-                
-                // Update table status if applicable
-                if ($tableId) {
-                    $stmt = $pdo->prepare("UPDATE tables SET status = 'available', current_order_id = NULL WHERE id = ?");
-                    $stmt->execute([$tableId]);
-                }
-                
-                $_SESSION['cart'] = [];
-                
-                echo json_encode(['success' => true, 'order_id' => $orderId, 'order_number' => $orderNumber]);
             }
             break;
 

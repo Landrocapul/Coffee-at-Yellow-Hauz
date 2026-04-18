@@ -6,6 +6,11 @@ if (!isLoggedIn()) {
     redirect('index.php');
 }
 
+// Check if user has cashier access (both cashier and admin can access tickets)
+if (!hasCashierAccess()) {
+    redirect('menu.php');
+}
+
 // Get current user info
 $currentUser = getCurrentUser();
 
@@ -102,6 +107,7 @@ $completedTickets = $stmt->fetchAll();
                     <a href="ticket.php" class="flex items-center gap-4 bg-brand-black text-brand px-4 py-3.5 rounded-2xl font-semibold shadow-md transition-all">
                         <i class="fa-solid fa-receipt w-5 text-center"></i> <span class="nav-text">Tickets</span>
                     </a>
+                    <?php if (isAdmin()): ?>
                     <a href="items.php" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
                         <i class="fa-solid fa-clipboard-list w-5 text-center"></i> <span class="nav-text">Manage Food Items</span>
                     </a>
@@ -114,6 +120,7 @@ $completedTickets = $stmt->fetchAll();
                     <a href="settings.php" class="flex items-center gap-4 text-gray-500 hover:text-brand-black hover:bg-gray-100 px-4 py-3.5 rounded-2xl font-medium transition-all">
                         <i class="fa-solid fa-gear w-5 text-center"></i> <span class="nav-text">Settings</span>
                     </a>
+                    <?php endif; ?>
                 </nav>
             </div>
 
@@ -167,6 +174,13 @@ $completedTickets = $stmt->fetchAll();
                                 <div>
                                     <h4 class="font-bold text-brand-black"><?php echo htmlspecialchars($ticket['customer_name'] ?? 'Guest'); ?></h4>
                                     <p class="text-xs text-gray-500"><?php echo date('h:i A', strtotime($ticket['created_at'])); ?></p>
+                                    <p class="text-xs text-gray-400 mt-1">
+                                        <?php 
+                                        $orderType = $ticket['order_type'] ?? 'dine_in';
+                                        echo 'DEBUG: ' . $orderType . ' - ';
+                                        echo $orderType === 'dine_in' ? 'Dine In' : 'Take Out';
+                                        ?>
+                                    </p>
                                 </div>
                             </div>
                             <span class="text-xs font-bold px-2 py-1 rounded-md <?php echo $ticket['status'] === 'processing' ? 'bg-brand-light text-brand-dark' : 'bg-gray-100 text-gray-600'; ?> uppercase">

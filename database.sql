@@ -35,9 +35,10 @@ CREATE TABLE IF NOT EXISTS menu_items (
     description TEXT,
     price DECIMAL(10, 2) NOT NULL,
     image_url VARCHAR(500),
-    temperature ENUM('hot', 'iced', 'both') DEFAULT 'both',
+    temperature ENUM('hot', 'iced', 'both', 'blended iced') DEFAULT 'both',
     is_best_seller BOOLEAN DEFAULT FALSE,
     is_available BOOLEAN DEFAULT TRUE,
+    quantity INT DEFAULT 0,
     sort_order INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -129,15 +130,40 @@ INSERT INTO categories (name, icon, sort_order) VALUES
 ('Food', 'fa-solid fa-cookie', 6);
 
 -- Insert Default Menu Items
-INSERT INTO menu_items (category_id, name, description, price, image_url, temperature, is_best_seller, is_available) VALUES
-(1, 'Espresso', 'Pure and intense espresso shot', 100.00, 'https://plus.unsplash.com/premium_photo-1669687924558-386bff1a0469?q=80&w=688&auto=format&fit=crop', 'hot', FALSE, TRUE),
-(1, 'Cappuccino', 'Espresso with steamed milk and foam', 170.00, 'https://images.unsplash.com/photo-1534778101976-62847782c213?w=500&q=80', 'hot', TRUE, TRUE),
-(1, 'Spanish Latte', 'Sweet and creamy latte with condensed milk', 200.00, 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=500&q=80', 'iced', FALSE, TRUE),
-(1, 'Flat White', 'Velvety smooth microfoam espresso', 170.00, 'https://images.unsplash.com/photo-1727080409436-356bdc609899?fm=jpg&q=60&w=3000&auto=format&fit=crop', 'hot', FALSE, TRUE),
-(1, 'Macchiato', 'Espresso marked with a dollop of foam', 110.00, 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?w=500&q=80', 'hot', FALSE, TRUE),
-(1, 'Americano Hot', 'Espresso diluted with hot water', 140.00, 'https://images.unsplash.com/photo-1599659236990-34cc97c7e363?fm=jpg&q=60&w=3000&auto=format&fit=crop', 'hot', FALSE, TRUE),
-(1, 'Cortado', 'Equal parts espresso and steamed milk', 150.00, 'https://images.unsplash.com/photo-1519532059956-a63a37af5deb?w=500&q=80', 'hot', FALSE, TRUE),
-(1, 'Latte', 'Smooth espresso with steamed milk', 170.00, 'https://images.unsplash.com/photo-1610889556528-9a770e32642f?w=200&q=80', 'hot', FALSE, TRUE);
+INSERT INTO menu_items (category_id, name, description, price, image_url, temperature, is_best_seller, is_available, quantity) VALUES
+(1, 'Espresso', 'Pure and intense espresso shot', 100.00, 'https://plus.unsplash.com/premium_photo-1669687924558-386bff1a0469?q=80&w=688&auto=format&fit=crop', 'hot', FALSE, TRUE, 50),
+(1, 'Cappuccino', 'Espresso with steamed milk and foam', 170.00, 'https://images.unsplash.com/photo-1534778101976-62847782c213?w=500&q=80', 'hot', TRUE, TRUE, 45),
+(1, 'Spanish Latte', 'Sweet and creamy latte with condensed milk', 200.00, 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=500&q=80', 'iced', FALSE, TRUE, 40),
+(1, 'Flat White', 'Velvety smooth microfoam espresso', 170.00, 'https://images.unsplash.com/photo-1727080409436-356bdc609899?fm=jpg&q=60&w=3000&auto=format&fit=crop', 'hot', FALSE, TRUE, 35),
+(1, 'Macchiato', 'Espresso marked with a dollop of foam', 110.00, 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?w=500&q=80', 'hot', FALSE, TRUE, 30),
+(1, 'Americano Hot', 'Espresso diluted with hot water', 140.00, 'https://images.unsplash.com/photo-1599659236990-34cc97c7e363?fm=jpg&q=60&w=3000&auto=format&fit=crop', 'hot', FALSE, TRUE, 55),
+(1, 'Cortado', 'Equal parts espresso and steamed milk', 150.00, 'https://images.unsplash.com/photo-1519532059956-a63a37af5deb?w=500&q=80', 'hot', FALSE, TRUE, 25),
+(1, 'Latte', 'Smooth espresso with steamed milk', 170.00, 'https://images.unsplash.com/photo-1610889556528-9a770e32642f?w=200&q=80', 'hot', FALSE, TRUE, 60);
+
+INSERT INTO menu_items (category_id, name, description, price, image_url, temperature, is_best_seller, is_available, quantity) VALUES
+(2, 'Iced Caramel', 'Espresso sweetened with rich caramel syrup served over ice', 210.00, 'https://plus.unsplash.com/premium_photo-1669687924558-386bff1a0469?q=80&w=688&auto=format&fit=crop', 'iced', FALSE, TRUE, 40),
+(2, 'Spanish Latte', 'Creamy espresso with condensed milk poured over ice', 210.00, 'https://images.unsplash.com/photo-1534778101976-62847782c213?w=500&q=80', 'iced', TRUE, TRUE, 35),
+(2, 'Iced Dirty Matcha', 'Earthy matcha latte with a bold espresso shot over ice', 260.00, 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=500&q=80', 'iced', FALSE, TRUE, 25),
+(2, 'Iced Yh Mocha', 'Espresso blended with chocolate and chilled milk over ice', 210.00, 'https://images.unsplash.com/photo-1727080409436-356bdc609899?fm=jpg&q=60&w=3000&auto=format&fit=crop', 'iced', FALSE, TRUE, 30),
+(2, 'Iced Almond Creme', 'Smooth espresso with almond syrup and creamy milk over ice', 210.00, 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?w=500&q=80', 'iced', FALSE, TRUE, 28),
+(2, 'Iced Strawberry Matcha', 'Fruity strawberry and earthy matcha layered over ice', 210.00, 'https://images.unsplash.com/photo-1599659236990-34cc97c7e363?fm=jpg&q=60&w=3000&auto=format&fit=crop', 'iced', FALSE, TRUE, 22),
+(2, 'Iced Americano', 'Bold espresso diluted with cold water and served over ice', 150.00, 'https://images.unsplash.com/photo-1519532059956-a63a37af5deb?w=500&q=80', 'iced', FALSE, TRUE, 45),
+(2, 'Iced Latte', 'Espresso and fresh milk poured over ice for a refreshing sip', 180.00, 'https://images.unsplash.com/photo-1610889556528-9a770e32642f?w=200&q=80', 'iced', FALSE, TRUE, 38),
+(2, 'Iced Cappuccino', 'Chilled espresso with frothy milk foam served over ice', 180.00, 'https://images.unsplash.com/photo-1599659236990-34cc97c7e363?fm=jpg&q=60&w=3000&auto=format&fit=crop', 'iced', FALSE, TRUE, 32),
+(2, 'Iced Nutty Coffee', 'Espresso with a rich nutty flavor served cold over ice', 210.00, 'https://images.unsplash.com/photo-1519532059956-a63a37af5deb?w=500&q=80', 'iced', FALSE, TRUE, 26),
+(2, 'Iced Toasted Mallows', 'Espresso with toasted marshmallow sweetness chilled over ice', 210.00, 'https://images.unsplash.com/photo-1610889556528-9a770e32642f?w=200&q=80', 'iced', FALSE, TRUE, 20),
+(2, 'Milk Coffee Jelly', 'Smooth coffee jelly cubes in sweetened milk for a fun chewy treat', 220.00, 'https://images.unsplash.com/photo-1610889556528-9a770e32642f?w=200&q=80', 'iced', FALSE, TRUE, 18),
+(2, 'Iced Dark Chocolate', 'Rich dark chocolate blended with espresso and chilled milk over ice', 210.00, 'https://images.unsplash.com/photo-1610889556528-9a770e32642f?w=200&q=80', 'iced', FALSE, TRUE, 24);
+
+INSERT INTO menu_items (category_id, name, description, price, image_url, temperature, is_best_seller, is_available, quantity) VALUES
+(3, 'Coffee Tea or Me', 'A delightful ice cream blend of coffee and tea swirled together over ice', 230.00, 'https://plus.unsplash.com/premium_photo-1669687924558-386bff1a0469?q=80&w=688&auto=format&fit=crop', 'blended iced', FALSE, TRUE, 15),
+(3, 'Coffeecat', 'A playful ice cream blended coffee with a smooth and sweet creamy finish', 230.00, 'https://images.unsplash.com/photo-1534778101976-62847782c213?w=500&q=80', 'blended iced', TRUE, TRUE, 20),
+(3, 'Coffeelandia', 'A dreamy ice cream blended coffee with rich and velvety creamy layers', 230.00, 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=500&q=80', 'blended iced', FALSE, TRUE, 18),
+(3, 'Coffeefornication', 'An indulgent ice cream blended coffee loaded with bold and irresistible flavors', 230.00, 'https://images.unsplash.com/photo-1727080409436-356bdc609899?fm=jpg&q=60&w=3000&auto=format&fit=crop', 'blended iced', FALSE, TRUE, 12),
+(3, 'Coffeemate', 'A smooth and creamy ice cream blended coffee perfect for any time of day', 230.00, 'https://images.unsplash.com/photo-1485808191679-5f86510681a2?w=500&q=80', 'blended iced', FALSE, TRUE, 16),
+(3, 'Coffeeright', 'A perfectly balanced ice cream blended coffee that hits all the right notes', 230.00, 'https://images.unsplash.com/photo-1599659236990-34cc97c7e363?fm=jpg&q=60&w=3000&auto=format&fit=crop', 'blended iced', FALSE, TRUE, 14),
+(3, 'Coffeeteria', 'A bold and refreshing ice cream blended coffee served chilled to perfection', 230.00, 'https://images.unsplash.com/photo-1519532059956-a63a37af5deb?w=500&q=80', 'blended iced', FALSE, TRUE, 22);
+
 
 -- Insert Default Tables
 INSERT INTO tables (table_number, capacity, status) VALUES
